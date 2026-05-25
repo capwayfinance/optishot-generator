@@ -1,7 +1,4 @@
-// Analyzes an uploaded eyeglass frame with Google Gemini and returns
-// a Flux-ready prompt. Reads multipart/form-data { image, style }.
-
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 const STYLE_CONTEXT = {
   studio: 'professional white studio, even soft-box lighting, subtle drop shadow beneath the frames',
@@ -82,7 +79,6 @@ module.exports = async (req, res) => {
 
     const fallbackPrompt = `Luxury eyeglasses, ${ctx}, sharp focus on frame details, photorealistic, commercial product photography, 8k`;
 
-    // Sans image — prompt générique
     if (!image) return res.status(200).json({ prompt: fallbackPrompt });
 
     const apiKey = process.env.GEMINI_KEY;
@@ -106,7 +102,6 @@ Rules:
 4. Stay under 60 words
 5. Output ONLY the prompt text — no explanation, no quotes, no preamble`;
 
-    // Appel Google Gemini API directe
     const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
