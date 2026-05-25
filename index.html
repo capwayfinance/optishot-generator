@@ -41,20 +41,23 @@ h1 em{font-style:italic;color:var(--vert)}
 .preview-remove svg{width:11px;height:11px}
 .preview-name{padding:6px 12px;font-size:11px;color:var(--texte-50);background:rgba(17,17,16,0.03);border-top:1px solid rgba(17,17,16,0.06);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .field-label{display:block;font-size:10px;font-weight:500;color:var(--texte-50);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;margin-top:16px}
-textarea{width:100%;background:var(--creme);border:1px solid rgba(17,17,16,0.12);border-radius:var(--radius);padding:11px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:300;color:var(--texte);line-height:1.6;resize:none;min-height:88px;outline:none;transition:border-color .2s}
+textarea{width:100%;background:var(--creme);border:1px solid rgba(17,17,16,0.12);border-radius:var(--radius);padding:11px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:300;color:var(--texte);line-height:1.6;resize:none;min-height:96px;outline:none;transition:border-color .2s}
 textarea:focus{border-color:var(--vert);box-shadow:0 0 0 3px rgba(20,64,44,0.07)}
 textarea::placeholder{color:var(--texte-30)}
-.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-.chip{font-size:11px;color:var(--vert);background:var(--vert-10);border:1px solid var(--vert-dim);border-radius:100px;padding:3px 9px;cursor:pointer;transition:background .15s}
-.chip:hover{background:rgba(20,64,44,0.14)}
-.params{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
 select{width:100%;appearance:none;background:var(--creme) url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23111110' stroke-opacity='0.4' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;border:1px solid rgba(17,17,16,0.12);border-radius:var(--radius);padding:9px 28px 9px 12px;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--texte);cursor:pointer;outline:none}
 select:focus{border-color:var(--vert)}
+.step2{display:none;margin-top:4px;padding-top:8px;border-top:1px solid rgba(17,17,16,0.08)}
+.step2.show{display:block;animation:reveal .4s cubic-bezier(0.16,1,0.3,1) forwards}
+.warn{font-size:11px;color:#9a6b1e;background:rgba(154,107,30,0.08);border:1px solid rgba(154,107,30,0.2);border-radius:6px;padding:7px 10px;margin-top:10px;display:none}
+.warn.show{display:block}
 .btn-gen{width:100%;background:var(--vert);color:#F4EFE6;border:none;border-radius:var(--radius);padding:13px 20px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s,transform .15s,box-shadow .2s}
 .btn-gen:hover:not(:disabled){background:var(--vert-light);transform:translateY(-1px);box-shadow:0 6px 20px rgba(20,64,44,0.25)}
 .btn-gen:disabled{opacity:.6;cursor:not-allowed;transform:none}
 .btn-gen svg{width:15px;height:15px}
+.btn-ghost{background:transparent;color:var(--vert);border:1px solid var(--vert-dim)}
+.btn-ghost:hover:not(:disabled){background:var(--vert-10);color:var(--vert)}
 .spinner{width:14px;height:14px;border:2px solid rgba(244,239,230,0.3);border-top-color:#F4EFE6;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.btn-ghost .spinner{border:2px solid rgba(20,64,44,0.25);border-top-color:var(--vert)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .result-panel{background:var(--blanc);border:1px solid rgba(17,17,16,0.1);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);position:sticky;top:20px}
 .state-empty{padding:44px 20px;text-align:center}
@@ -95,7 +98,7 @@ select:focus{border-color:var(--vert)}
 .state-result.show{animation:reveal .4s cubic-bezier(0.16,1,0.3,1) forwards}
 .page-footer{border-top:1px solid rgba(17,17,16,0.08);padding:20px 40px;max-width:780px;margin:0 auto;display:flex;justify-content:space-between}
 .footer-copy,.footer-model{font-size:11px;color:var(--texte-30)}
-@media(max-width:640px){header{padding:0 20px}.container{padding:0 20px}.gen-grid{grid-template-columns:1fr}.result-panel{position:static}.params{grid-template-columns:1fr}.page-footer{padding:20px;flex-direction:column;gap:6px}}
+@media(max-width:640px){header{padding:0 20px}.container{padding:0 20px}.gen-grid{grid-template-columns:1fr}.result-panel{position:static}.page-footer{padding:20px;flex-direction:column;gap:6px}}
 </style>
 </head>
 <body>
@@ -111,7 +114,7 @@ select:focus{border-color:var(--vert)}
   <div class="hero">
     <div class="eyebrow">Générateur de visuels IA</div>
     <h1>Un visuel de<br><em>studio. En 30 secondes.</em></h1>
-    <p class="hero-sub">Uploadez une photo de votre monture, décrivez l'ambiance. L'outil génère un visuel professionnel prêt à publier.</p>
+    <p class="hero-sub">Uploadez une photo de votre monture, choisissez l'ambiance. L'IA analyse la monture puis génère un visuel professionnel prêt à publier.</p>
   </div>
 
   <div class="gen-grid">
@@ -132,45 +135,58 @@ select:focus{border-color:var(--vert)}
           <button class="preview-remove" id="removeBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           <div class="preview-name" id="previewName"></div>
         </div>
-        <label class="field-label">Description du visuel souhaité</label>
-        <textarea id="promptTxt" placeholder="Ex : monture minimaliste sur fond studio blanc, lumière naturelle douce…" rows="4"></textarea>
-        <div class="chips">
-          <button class="chip">Studio minimaliste</button>
-          <button class="chip">Lumière naturelle</button>
-          <button class="chip">Fond bois clair</button>
-          <button class="chip">Ambiance luxe</button>
-          <button class="chip">Fond noir mat</button>
-        </div>
-        <div class="params">
-          <div><label class="field-label">Modèle</label>
-          <select id="modelSel"><option value="core" selected>Core — Équilibre</option><option value="ultra">Ultra — Qualité max</option></select></div>
-          <div><label class="field-label">Format</label>
-          <select id="ratioSel"><option value="1:1" selected>1:1 · Instagram</option><option value="4:5">4:5 · Portrait</option><option value="16:9">16:9 · Bannière</option><option value="9:16">9:16 · Story</option></select></div>
-        </div>
-        <button class="btn-gen" id="genBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          <span id="genTxt">Générer le visuel</span>
-          <div class="spinner" id="spinner"></div>
+
+        <label class="field-label">Ambiance souhaitée</label>
+        <select id="styleSel">
+          <option value="studio" selected>Studio — fond blanc</option>
+          <option value="nature">Nature — lumière dorée</option>
+          <option value="luxe">Luxe — marbre sombre</option>
+          <option value="urbain">Urbain — béton</option>
+        </select>
+
+        <button class="btn-gen btn-ghost" id="analyzeBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span id="analyzeTxt">Analyser la monture</span>
+          <div class="spinner" id="analyzeSpinner"></div>
         </button>
+
+        <div class="warn" id="analyzeWarn"></div>
+
+        <div class="step2" id="step2">
+          <label class="field-label">Prompt généré — éditable</label>
+          <textarea id="promptTxt" placeholder="Le prompt généré par l'IA apparaîtra ici…" rows="4"></textarea>
+          <label class="field-label">Format</label>
+          <select id="ratioSel">
+            <option value="1:1" selected>1:1 · Instagram</option>
+            <option value="4:5">4:5 · Portrait</option>
+            <option value="16:9">16:9 · Bannière</option>
+            <option value="9:16">9:16 · Story</option>
+          </select>
+          <button class="btn-gen" id="genBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span id="genTxt">Générer le visuel</span>
+            <div class="spinner" id="spinner"></div>
+          </button>
+        </div>
       </div>
     </div>
 
     <div class="result-panel">
       <div class="state-empty" id="stEmpty">
         <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
-        <div class="empty-title">Votre visuel apparaîtra ici.</div>
-        <div class="empty-sub">Décrivez l'ambiance<br>et cliquez sur Générer.</div>
+        <div class="empty-title" id="emptyTitle">Votre visuel apparaîtra ici.</div>
+        <div class="empty-sub" id="emptySub">Uploadez une monture<br>et cliquez sur Analyser.</div>
       </div>
       <div class="state-loading" id="stLoading">
         <div class="load-rings"><div class="ring"></div><div class="ring"></div><div class="ring"></div></div>
-        <div class="load-text">Génération en cours…</div>
-        <div class="load-sub" id="loadSub">Composition de la scène</div>
+        <div class="load-text" id="loadText">Traitement en cours…</div>
+        <div class="load-sub" id="loadSub">Préparation</div>
         <div class="bar-wrap"><div class="bar" id="bar"></div></div>
       </div>
       <div class="state-result" id="stResult">
         <img id="resultImg" src="" alt="Visuel généré" class="result-img">
         <div class="result-footer">
-          <div class="result-meta"><strong id="metaModel">Stability AI · Core</strong><span id="metaFormat">Format 1:1</span></div>
+          <div class="result-meta"><strong id="metaModel">fal.ai · Flux Dev</strong><span id="metaFormat">Format 1:1</span></div>
           <div class="result-btns">
             <button class="btn-regen" id="regenBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Relancer</button>
             <button class="btn-dl" id="dlBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Télécharger</button>
@@ -179,7 +195,7 @@ select:focus{border-color:var(--vert)}
       </div>
       <div class="state-error" id="stError">
         <div class="err-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
-        <div class="err-title">Génération échouée.</div>
+        <div class="err-title">Opération échouée.</div>
         <div class="err-msg" id="errMsg">Vérifiez votre connexion et réessayez.</div>
         <button class="btn-retry" id="retryBtn">Réessayer</button>
       </div>
@@ -189,54 +205,76 @@ select:focus{border-color:var(--vert)}
 
 <div class="page-footer">
   <span class="footer-copy">© 2025 Capway Finance · Outil interne</span>
-  <span class="footer-model" id="footerModel">Stability AI · core</span>
+  <span class="footer-model">fal.ai · Flux Dev × Gemini 2.5</span>
 </div>
 
 <script>
-const fileInput=document.getElementById('fileInput'),previewWrap=document.getElementById('previewWrap'),previewImg=document.getElementById('previewImg'),previewName=document.getElementById('previewName'),removeBtn=document.getElementById('removeBtn'),promptTxt=document.getElementById('promptTxt'),modelSel=document.getElementById('modelSel'),ratioSel=document.getElementById('ratioSel'),genBtn=document.getElementById('genBtn'),genTxt=document.getElementById('genTxt'),spinner=document.getElementById('spinner'),bar=document.getElementById('bar'),loadSub=document.getElementById('loadSub'),resultImg=document.getElementById('resultImg'),dlBtn=document.getElementById('dlBtn'),errMsg=document.getElementById('errMsg');
-let currentFile=null,isGenerating=false;
+const $=id=>document.getElementById(id);
+const fileInput=$('fileInput'),uploadZone=$('uploadZone'),previewWrap=$('previewWrap'),previewImg=$('previewImg'),previewName=$('previewName'),removeBtn=$('removeBtn'),styleSel=$('styleSel'),analyzeBtn=$('analyzeBtn'),analyzeTxt=$('analyzeTxt'),analyzeSpinner=$('analyzeSpinner'),analyzeWarn=$('analyzeWarn'),step2=$('step2'),promptTxt=$('promptTxt'),ratioSel=$('ratioSel'),genBtn=$('genBtn'),genTxt=$('genTxt'),spinner=$('spinner'),bar=$('bar'),loadText=$('loadText'),loadSub=$('loadSub'),resultImg=$('resultImg'),dlBtn=$('dlBtn'),errMsg=$('errMsg');
+let currentFile=null,busy=false;
 
 fileInput.addEventListener('change',e=>handleFile(e.target.files[0]));
-function handleFile(f){if(!f)return;currentFile=f;const r=new FileReader();r.onload=e=>{previewImg.src=e.target.result;previewName.textContent=f.name+' · '+(f.size/1024).toFixed(0)+' Ko';document.getElementById('uploadZone').style.display='none';previewWrap.style.display='block'};r.readAsDataURL(f)}
-removeBtn.addEventListener('click',()=>{currentFile=null;fileInput.value='';previewImg.src='';previewWrap.style.display='none';document.getElementById('uploadZone').style.display=''});
-document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{const cur=promptTxt.value.trim();promptTxt.value=cur?cur+', '+c.textContent.toLowerCase():c.textContent;promptTxt.focus()}));
+function handleFile(f){if(!f)return;currentFile=f;const r=new FileReader();r.onload=e=>{previewImg.src=e.target.result;previewName.textContent=f.name+' · '+(f.size/1024).toFixed(0)+' Ko';uploadZone.style.display='none';previewWrap.style.display='block'};r.readAsDataURL(f)}
+removeBtn.addEventListener('click',()=>{currentFile=null;fileInput.value='';previewImg.src='';previewWrap.style.display='none';uploadZone.style.display=''});
 
-function showState(n){['stEmpty','stLoading','stResult','stError'].forEach(id=>{const el=document.getElementById(id);el.style.display=id===('st'+n.charAt(0).toUpperCase()+n.slice(1))?'':'none'});if(n==='result'){const el=document.getElementById('stResult');el.classList.remove('show');void el.offsetWidth;el.classList.add('show')}}
+function showState(n){['Empty','Loading','Result','Error'].forEach(s=>{$('st'+s).style.display=(s.toLowerCase()===n)?'':'none'});if(n==='result'){const el=$('stResult');el.classList.remove('show');void el.offsetWidth;el.classList.add('show')}}
 
-const phrases=['Composition de la scène','Application de l\'éclairage','Rendu de la monture','Finalisation des détails'];
 let pi=null;
-function startProgress(){let p=0,i=0;bar.style.width='0%';loadSub.textContent=phrases[0];pi=setInterval(()=>{p+=(88-p)*0.06+Math.random()*1.5;p=Math.min(p,88);bar.style.width=p+'%';const ni=Math.floor((p/88)*(phrases.length-1));if(ni!==i&&ni<phrases.length){i=ni;loadSub.textContent=phrases[i]}},300)}
+function startProgress(phrases){let p=0,i=0;bar.style.width='0%';loadSub.textContent=phrases[0];pi=setInterval(()=>{p+=(88-p)*0.06+Math.random()*1.5;p=Math.min(p,88);bar.style.width=p+'%';const ni=Math.floor((p/88)*(phrases.length-1));if(ni!==i&&ni<phrases.length){i=ni;loadSub.textContent=phrases[i]}},300)}
 function stopProgress(ok){clearInterval(pi);bar.style.width=ok?'100%':'0%'}
 
+async function analyze(){
+  if(busy)return;
+  if(!currentFile){uploadZone.style.borderColor='var(--rouge)';setTimeout(()=>uploadZone.style.borderColor='',1200);return}
+  busy=true;analyzeBtn.disabled=true;analyzeTxt.textContent='Analyse…';analyzeSpinner.style.display='block';analyzeBtn.querySelector('svg').style.display='none';analyzeWarn.classList.remove('show');
+  loadText.textContent='Analyse de la monture…';showState('loading');startProgress(['Lecture de la photo','Identification de la forme','Analyse des matériaux','Rédaction du prompt']);
+  try{
+    const fd=new FormData();fd.append('image',currentFile);fd.append('style',styleSel.value);
+    const res=await fetch('/api/analyze',{method:'POST',body:fd});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'HTTP '+res.status);
+    stopProgress(true);await new Promise(r=>setTimeout(r,200));
+    promptTxt.value=data.prompt||'';
+    step2.classList.add('show');
+    if(data.warning){analyzeWarn.textContent='Analyse IA indisponible — prompt par défaut utilisé. ('+data.warning+')';analyzeWarn.classList.add('show')}
+    $('emptyTitle').textContent='Monture analysée.';
+    $('emptySub').innerHTML='Vérifiez le prompt à gauche<br>puis cliquez sur Générer.';
+    showState('empty');
+    promptTxt.focus();
+  }catch(e){
+    stopProgress(false);await new Promise(r=>setTimeout(r,150));
+    errMsg.textContent=e.message||'Erreur inconnue';showState('error');
+  }finally{busy=false;analyzeBtn.disabled=false;analyzeTxt.textContent='Analyser la monture';analyzeSpinner.style.display='none';analyzeBtn.querySelector('svg').style.display=''}
+}
+
 async function generate(){
-  if(isGenerating)return;
+  if(busy)return;
   const prompt=promptTxt.value.trim();
   if(!prompt){promptTxt.style.borderColor='var(--rouge)';promptTxt.focus();setTimeout(()=>promptTxt.style.borderColor='',1200);return}
-  isGenerating=true;genBtn.disabled=true;genTxt.textContent='Génération…';spinner.style.display='block';genBtn.querySelector('svg').style.display='none';
-  showState('loading');startProgress();
-  const model=modelSel.value,ratio=ratioSel.value;
+  const ratio=ratioSel.value;
+  busy=true;genBtn.disabled=true;genTxt.textContent='Génération…';spinner.style.display='block';genBtn.querySelector('svg').style.display='none';
+  loadText.textContent='Génération en cours…';showState('loading');startProgress(['Composition de la scène','Application de l\'éclairage','Rendu de la monture','Finalisation des détails']);
   try{
-    const fd=new FormData();fd.append('prompt',prompt);if(currentFile)fd.append('image',currentFile);
-    const res=await fetch('/api/generate',{method:'POST',headers:{'x-model':model,'x-ratio':ratio},body:fd});
+    const res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,ratio})});
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'HTTP '+res.status);
     stopProgress(true);await new Promise(r=>setTimeout(r,300));
-    resultImg.src='data:image/jpeg;base64,'+data.image;
-    document.getElementById('metaModel').textContent='Stability AI · '+(model==='ultra'?'Ultra':'Core');
-    document.getElementById('metaFormat').textContent='Format '+ratio+' · JPEG';
-    document.getElementById('footerModel').textContent='Stability AI · '+model;
+    const src='data:image/jpeg;base64,'+data.image;
+    resultImg.src=src;
+    $('metaFormat').textContent='Format '+ratio+' · JPEG';
     showState('result');
-    dlBtn.onclick=()=>{const a=document.createElement('a');a.href='data:image/jpeg;base64,'+data.image;a.download='optishot-'+Date.now()+'.jpg';a.click()};
+    dlBtn.onclick=()=>{const a=document.createElement('a');a.href=src;a.download='optishot-'+Date.now()+'.jpg';a.click()};
   }catch(e){
-    stopProgress(false);await new Promise(r=>setTimeout(r,200));
+    stopProgress(false);await new Promise(r=>setTimeout(r,150));
     let msg=e.message||'Erreur inconnue';
-    if(msg.includes('401'))msg='Clé API invalide.';else if(msg.includes('402'))msg='Crédits insuffisants.';else if(msg.includes('429'))msg='Trop de requêtes. Attendez.';
     errMsg.textContent=msg;showState('error');
-  }finally{isGenerating=false;genBtn.disabled=false;genTxt.textContent='Générer le visuel';spinner.style.display='none';genBtn.querySelector('svg').style.display=''}
+  }finally{busy=false;genBtn.disabled=false;genTxt.textContent='Générer le visuel';spinner.style.display='none';genBtn.querySelector('svg').style.display=''}
 }
-document.getElementById('genBtn').addEventListener('click',generate);
-document.getElementById('regenBtn').addEventListener('click',generate);
-document.getElementById('retryBtn').addEventListener('click',generate);
+
+analyzeBtn.addEventListener('click',analyze);
+genBtn.addEventListener('click',generate);
+$('regenBtn').addEventListener('click',generate);
+$('retryBtn').addEventListener('click',()=>{if(promptTxt.value.trim())generate();else analyze()});
 promptTxt.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))generate()});
 </script>
 </body>
