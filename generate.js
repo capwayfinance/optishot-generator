@@ -1,4 +1,12 @@
-const STABILITY_BASE = 'https://api.stability.ai/v2beta/stable-image/generate';
+// fal.ai (Flux Dev) text-to-image. Reads JSON { prompt, ratio }.
+const FAL_BASE = 'https://fal.run/fal-ai/flux/dev';
+
+const SIZE_MAP = {
+  '1:1':  { width: 1024, height: 1024 },
+  '4:5':  { width: 816,  height: 1024 },
+  '16:9': { width: 1024, height: 576  },
+  '9:16': { width: 576,  height: 1024 },
+};
 
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
@@ -9,109 +17,91 @@ function getRawBody(req) {
   });
 }
 
-function indexOf(buf, search, offset = 0) {
-  for (let i = offset; i <= buf.length - search.length; i++) {
-    let found = true;
-    for (let j = 0; j < search.length; j++) {
-      if (buf[i + j] !== search[j]) { found = false; break; }
-    }
-    if (found) return i;
-  }
-  return -1;
+async function readPayload(req) {
+  if (req.body && typeof req.body === 'object') return req.body;
+  if (typeof req.body === 'string' && req.body.length) return JSON.parse(req.body);
+  const raw = await getRawBody(req);
+  return raw && raw.length ? JSON.parse(raw.toString('utf8')) : {};
 }
 
-function splitBuffer(buf, sep) {
-  const parts = [];
-  let start = 0, pos;
-  while ((pos = indexOf(buf, sep, start)) !== -1) {
-    parts.push(buf.slice(start, pos));
-    start = pos + sep.length;
-    if (buf[start] === 13 && buf[start + 1] === 10) start += 2;
-  }
-  parts.push(buf.slice(start));
-  return parts.filter(p => p.length > 0);
-}
-
-function parseMultipart(buffer, boundary) {
-  const sep = Buffer.from(`--${boundary}`);
-  const results = {};
-  const parts = splitBuffer(buffer, sep);
-  for (const part of parts) {
-    if (part.length < 4) continue;
-    const crlf2 = Buffer.from('\r\n\r\n');
-    const idx = indexOf(part, crlf2);
-    if (idx === -1) continue;
-    const headersBuf = part.slice(0, idx).toString('utf8');
-    const body = part.slice(idx + 4);
-    const bodyTrimmed = body.slice(-2).equals(Buffer.from('\r\n')) ? body.slice(0, -2) : body;
-    const dispMatch = headersBuf.match(/Content-Disposition:[^\r\n]*name="([^"]+)"/i);
-    if (!dispMatch) continue;
-    const name = dispMatch[1];
-    const filenameMatch = headersBuf.match(/filename="([^"]+)"/i);
-    const ctMatch = headersBuf.match(/Content-Type:\s*([^\r\n]+)/i);
-    if (filenameMatch) {
-      results[name] = { data: bodyTrimmed, filename: filenameMatch[1], mime: ctMatch ? ctMatch[1].trim() : 'image/jpeg' };
-    } else {
-      results[name] = { value: bodyTrimmed.toString('utf8') };
-    }
-  }
-  return results;
+function formatError(msg = '') {
+  const m = msg.toLowerCase();
+  if (msg.includes('401') || m.includes('unauthorized'))
+    return 'Clé fal.ai invalide. Vérifiez FAL_KEY dans Vercel → Settings → Environment Variables.';
+  if (msg.includes('402') || m.includes('credit') || m.includes('balance'))
+    return 'Crédits fal.ai insuffisants. Rechargez sur fal.ai/dashboard.';
+  if (msg.includes('429')) return 'Trop de requêtes. Attendez quelques secondes.';
+  return msg.length > 200 ? msg.slice(0, 200) + '…' : msg;
 }
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-model, x-ratio');
-  
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const apiKey = process.env.STABILITY_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'Clé API manquante.' });
+  const falKey = process.env.FAL_KEY;
+  if (!falKey) return res.status(500).json({ error: 'Clé fal.ai manquante (FAL_KEY).' });
 
   try {
-    const rawBody = await getRawBody(req);
-    const contentType = req.headers['content-type'] || '';
-    const model = (req.headers['x-model'] || 'core').replace(/[^a-z]/g, '');
-    const ratio = req.headers['x-ratio'] || '1:1';
-    const boundary = contentType.split('boundary=')[1];
-    if (!boundary) return res.status(400).json({ error: 'Multipart manquant.' });
-
-    const fields = parseMultipart(rawBody, boundary);
-    const promptRaw = fields.prompt?.value;
+    const payload = await readPayload(req);
+    const promptRaw = (payload.prompt || '').toString().trim();
+    const ratio = payload.ratio || '1:1';
     if (!promptRaw) return res.status(400).json({ error: 'Prompt requis.' });
 
-    const enriched = `Professional product photography of eyeglasses: ${promptRaw}. High-end optical quality, sharp focus on frames, studio lighting, commercial photography, photorealistic, 8k.`;
+    const finalPrompt = [
+      promptRaw,
+      'professional commercial product photography',
+      'ultra sharp focus',
+      'no people',
+      'no hands',
+      'no text',
+      'no watermark',
+      'photorealistic',
+    ].join(', ');
 
-    const outForm = new FormData();
-    outForm.append('prompt', enriched);
-    outForm.append('negative_prompt', 'blurry, low quality, distorted, watermark, text, logo, cartoon');
-    outForm.append('output_format', 'jpeg');
-    outForm.append('aspect_ratio', ratio);
-    if (fields.image) {
-      const blob = new Blob([fields.image.data], { type: fields.image.mime });
-      outForm.append('image', blob, fields.image.filename);
-      outForm.append('strength', '0.75');
-    }
-
-    const stabilityRes = await fetch(`${STABILITY_BASE}/${model}`, {
+    const falRes = await fetch(FAL_BASE, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, Accept: 'application/json' },
-      body: outForm,
+      headers: {
+        Authorization: `Key ${falKey}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: finalPrompt,
+        image_size: SIZE_MAP[ratio] || SIZE_MAP['1:1'],
+        num_images: 1,
+        num_inference_steps: 28,
+        guidance_scale: 3.5,
+        output_format: 'jpeg',
+        enable_safety_checker: false,
+        seed: Math.floor(Math.random() * 9_999_999),
+      }),
     });
 
-    if (!stabilityRes.ok) {
-      const err = await stabilityRes.json().catch(() => ({}));
-      return res.status(stabilityRes.status).json({ error: err?.errors?.[0] || err?.message || `HTTP ${stabilityRes.status}` });
+    if (!falRes.ok) {
+      const errData = await falRes.json().catch(() => ({}));
+      const msg = errData?.detail?.[0]?.msg || errData?.detail || errData?.message || `HTTP ${falRes.status}`;
+      return res.status(falRes.status).json({ error: formatError(typeof msg === 'string' ? msg : `HTTP ${falRes.status}`) });
     }
 
-    const data = await stabilityRes.json();
-    if (data.finish_reason && data.finish_reason !== 'SUCCESS') {
-      return res.status(422).json({ error: `Génération interrompue (${data.finish_reason})` });
+    const data = await falRes.json();
+    const imageUrl = data?.images?.[0]?.url;
+    if (!imageUrl) {
+      console.error('[generate] fal.ai response without image:', JSON.stringify(data).slice(0, 500));
+      return res.status(502).json({ error: "fal.ai n'a retourné aucune image." });
     }
 
-    return res.status(200).json({ image: data.image });
+    const imgRes = await fetch(imageUrl);
+    if (!imgRes.ok) return res.status(502).json({ error: `Récupération de l'image échouée (HTTP ${imgRes.status}).` });
+    const arrayBuffer = await imgRes.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString('base64');
+
+    return res.status(200).json({ image: base64 });
   } catch (err) {
-    return res.status(500).json({ error: 'Erreur serveur.' });
+    console.error('[generate] error:', err.message);
+    return res.status(500).json({ error: formatError(err.message) });
   }
 };
