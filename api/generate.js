@@ -42,9 +42,14 @@ module.exports = async (req, res) => {
 
     const finalPrompt = [
       promptRaw,
+      'tack sharp focus on the eyeglass frames',
+      'ultra high definition',
       'professional commercial product photography',
-      'ultra sharp focus',
-      'no people, no hands, no text, no watermark',
+      'no motion blur',
+      'no people',
+      'no hands',
+      'no text',
+      'no watermark',
       'photorealistic',
     ].join(', ');
 
@@ -59,8 +64,8 @@ module.exports = async (req, res) => {
         prompt: finalPrompt,
         image_size: SIZE_MAP[ratio] || SIZE_MAP['1:1'],
         num_images: 1,
-        num_inference_steps: 28,
-        guidance_scale: 3.5,
+        num_inference_steps: 50,
+        guidance_scale: 7.5,
         output_format: 'jpeg',
         enable_safety_checker: false,
         seed: Math.floor(Math.random() * 9999999),
@@ -77,7 +82,7 @@ module.exports = async (req, res) => {
     const data = await falRes.json();
     const imageUrl = data?.images?.[0]?.url;
     if (!imageUrl) {
-      console.error('[generate] no image in response:', JSON.stringify(data).slice(0, 300));
+      console.error('[generate] no image:', JSON.stringify(data).slice(0, 300));
       return res.status(502).json({ error: "fal.ai n'a retourné aucune image." });
     }
 
