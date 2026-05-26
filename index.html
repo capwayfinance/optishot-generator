@@ -3,279 +3,506 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Générateur de visuels — Capway Finance × OptiShot</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<title>OptiShot — Générateur de visuels IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--creme:#F4EFE6;--vert:#14402C;--vert-light:#1D5A3E;--texte:#111110;--texte-50:rgba(17,17,16,0.5);--texte-30:rgba(17,17,16,0.3);--blanc:#FDFAF6;--rouge:#C0392B;--vert-10:rgba(20,64,44,0.08);--vert-dim:rgba(20,64,44,0.2);--radius:8px;--shadow:0 2px 12px rgba(17,17,16,0.08)}
-body{background:var(--creme);color:var(--texte);font-family:'Inter',sans-serif;font-weight:300;line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
-header{background:var(--vert);padding:0 40px;height:58px;display:flex;align-items:center;justify-content:space-between}
-.logo-wrap{display:flex;align-items:center;gap:12px}
-.logo-mark{width:28px;height:28px;border:1px solid rgba(244,239,230,0.35);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:13px;color:rgba(244,239,230,0.9);font-style:italic}
-.logo-text{font-size:13px;color:rgba(244,239,230,0.75);letter-spacing:.08em}
-.badge{font-size:10px;font-weight:500;color:var(--vert);background:rgba(244,239,230,0.9);padding:3px 10px;letter-spacing:.08em;text-transform:uppercase;border-radius:2px}
-.container{max-width:780px;margin:0 auto;padding:0 40px}
-.hero{padding:48px 0 0}
+:root{
+  --creme:#F4EFE6;--blanc:#FDFAF6;
+  --vert:#14402C;--vert-l:#1D5A3E;--vert-10:rgba(20,64,44,0.08);--vert-20:rgba(20,64,44,0.15);
+  --texte:#111110;--t50:rgba(17,17,16,0.5);--t30:rgba(17,17,16,0.3);--t10:rgba(17,17,16,0.08);
+  --rouge:#C0392B;
+  --r:8px;--sh:0 2px 12px rgba(17,17,16,0.08),0 1px 3px rgba(17,17,16,0.06);
+  --font-t:'Playfair Display',Georgia,serif;--font-b:'Inter',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--creme);color:var(--texte);font-family:var(--font-b);font-weight:300;line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.hdr{background:var(--vert);padding:0 40px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.hdr-brand{display:flex;align-items:center;gap:12px}
+.hdr-mark{width:28px;height:28px;border:1px solid rgba(244,239,230,0.35);display:flex;align-items:center;justify-content:center;font-family:var(--font-t);font-size:12px;color:rgba(244,239,230,0.9);font-style:italic}
+.hdr-name{font-size:13px;font-weight:400;color:rgba(244,239,230,0.7);letter-spacing:.08em}
+.hdr-badge{font-size:10px;font-weight:500;color:var(--vert);background:rgba(244,239,230,0.88);padding:3px 10px;letter-spacing:.08em;text-transform:uppercase;border-radius:2px}
+
+/* HERO */
+.hero{padding:48px 40px 0;max-width:800px;margin:0 auto}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:500;color:var(--vert);letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px}
-.eyebrow::before{content:'';width:16px;height:1px;background:var(--vert);opacity:.5;display:inline-block}
-h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3rem);font-weight:400;line-height:1.12;margin-bottom:10px}
+.eyebrow::before{content:'';display:inline-block;width:16px;height:1px;background:var(--vert);opacity:.5}
+h1{font-family:var(--font-t);font-size:clamp(2rem,4vw,3.2rem);font-weight:400;color:var(--texte);line-height:1.1;margin-bottom:12px}
 h1 em{font-style:italic;color:var(--vert)}
-.hero-sub{font-size:15px;font-weight:300;color:var(--texte-50);padding-bottom:36px;border-bottom:1px solid rgba(17,17,16,0.1);max-width:520px}
-.gen-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:32px 0 60px;align-items:start}
-.panel{background:var(--blanc);border:1px solid rgba(17,17,16,0.1);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
-.panel-head{padding:16px 20px;border-bottom:1px solid rgba(17,17,16,0.07);display:flex;align-items:center;gap:8px}
-.panel-icon{width:26px;height:26px;background:var(--vert-10);border-radius:5px;display:flex;align-items:center;justify-content:center}
-.panel-icon svg{width:13px;height:13px;color:var(--vert)}
-.panel-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:500}
-.panel-body{padding:22px}
-.upload-zone{border:1.5px dashed var(--vert-dim);border-radius:var(--radius);padding:26px 16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative;margin-bottom:16px}
-.upload-zone:hover{border-color:var(--vert);background:var(--vert-10)}
+.sub{font-size:15px;font-weight:300;color:var(--t50);max-width:500px;line-height:1.7;padding-bottom:36px;border-bottom:1px solid rgba(17,17,16,0.1)}
+
+/* LAYOUT */
+.layout{max-width:800px;margin:0 auto;padding:32px 40px 80px;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+
+/* PANELS */
+.panel{background:var(--blanc);border:1px solid rgba(17,17,16,0.1);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.ph{padding:14px 20px;border-bottom:1px solid rgba(17,17,16,0.07);display:flex;align-items:center;gap:10px}
+.ph-icon{width:26px;height:26px;background:var(--vert-10);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.ph-icon svg{width:13px;height:13px;color:var(--vert)}
+.ph-title{font-family:var(--font-t);font-size:14px;font-weight:500;color:var(--texte);flex:1}
+.ph-step{font-size:11px;color:var(--t30)}
+.pb{padding:20px}
+
+/* UPLOAD */
+.upload-zone{border:1.5px dashed rgba(20,64,44,0.28);border-radius:var(--r);padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-bottom:8px}
+.upload-zone:hover,.upload-zone.over{border-color:var(--vert);background:var(--vert-10)}
 .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.upload-ico{width:38px;height:38px;border:1px solid var(--vert-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+.upload-ico{width:38px;height:38px;border:1px solid var(--vert-20);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;transition:all .2s}
+.upload-zone:hover .upload-ico{border-color:var(--vert);background:rgba(20,64,44,0.06)}
 .upload-ico svg{width:16px;height:16px;color:var(--vert)}
-.upload-p{font-size:12.5px;font-weight:500;color:var(--vert);display:block;margin-bottom:2px}
-.upload-s{font-size:11px;color:var(--texte-30)}
-.preview-wrap{display:none;position:relative;border-radius:6px;overflow:hidden;margin-bottom:16px}
-.preview-wrap img{width:100%;height:130px;object-fit:cover;display:block}
-.preview-remove{position:absolute;top:6px;right:6px;width:24px;height:24px;background:rgba(17,17,16,0.6);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#F4EFE6}
-.preview-remove svg{width:11px;height:11px}
-.preview-name{padding:6px 12px;font-size:11px;color:var(--texte-50);background:rgba(17,17,16,0.03);border-top:1px solid rgba(17,17,16,0.06);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.field-label{display:block;font-size:10px;font-weight:500;color:var(--texte-50);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;margin-top:16px}
-textarea{width:100%;background:var(--creme);border:1px solid rgba(17,17,16,0.12);border-radius:var(--radius);padding:11px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:300;color:var(--texte);line-height:1.6;resize:none;min-height:96px;outline:none;transition:border-color .2s}
-textarea:focus{border-color:var(--vert);box-shadow:0 0 0 3px rgba(20,64,44,0.07)}
-textarea::placeholder{color:var(--texte-30)}
-select{width:100%;appearance:none;background:var(--creme) url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23111110' stroke-opacity='0.4' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;border:1px solid rgba(17,17,16,0.12);border-radius:var(--radius);padding:9px 28px 9px 12px;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--texte);cursor:pointer;outline:none}
-select:focus{border-color:var(--vert)}
-.step2{display:none;margin-top:4px;padding-top:8px;border-top:1px solid rgba(17,17,16,0.08)}
-.step2.show{display:block;animation:reveal .4s cubic-bezier(0.16,1,0.3,1) forwards}
-.warn{font-size:11px;color:#9a6b1e;background:rgba(154,107,30,0.08);border:1px solid rgba(154,107,30,0.2);border-radius:6px;padding:7px 10px;margin-top:10px;display:none}
-.warn.show{display:block}
-.btn-gen{width:100%;background:var(--vert);color:#F4EFE6;border:none;border-radius:var(--radius);padding:13px 20px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s,transform .15s,box-shadow .2s}
-.btn-gen:hover:not(:disabled){background:var(--vert-light);transform:translateY(-1px);box-shadow:0 6px 20px rgba(20,64,44,0.25)}
-.btn-gen:disabled{opacity:.6;cursor:not-allowed;transform:none}
-.btn-gen svg{width:15px;height:15px}
-.btn-ghost{background:transparent;color:var(--vert);border:1px solid var(--vert-dim)}
-.btn-ghost:hover:not(:disabled){background:var(--vert-10);color:var(--vert)}
-.spinner{width:14px;height:14px;border:2px solid rgba(244,239,230,0.3);border-top-color:#F4EFE6;border-radius:50%;animation:spin .7s linear infinite;display:none}
-.btn-ghost .spinner{border:2px solid rgba(20,64,44,0.25);border-top-color:var(--vert)}
+.up1{font-size:13px;font-weight:500;color:var(--vert);display:block;margin-bottom:3px}
+.up2{font-size:11.5px;font-weight:300;color:var(--t30);display:block}
+
+.preview{border-radius:6px;overflow:hidden;margin-bottom:8px;position:relative;display:none}
+.preview img{width:100%;height:120px;object-fit:cover;display:block}
+.preview-rm{position:absolute;top:6px;right:6px;width:24px;height:24px;background:rgba(17,17,16,.65);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff}
+.preview-rm svg{width:11px;height:11px}
+.preview-name{padding:6px 10px;font-size:11px;color:var(--t50);background:rgba(17,17,16,.03);border-top:1px solid rgba(17,17,16,.06);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.opt-label{font-size:11px;font-weight:300;color:var(--t30);font-style:italic;margin-bottom:4px}
+
+/* FIELDS */
+.lbl{display:block;font-size:10px;font-weight:500;color:var(--t50);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.sel{width:100%;appearance:none;background:var(--creme) url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23111110' stroke-opacity='0.4' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;border:1px solid rgba(17,17,16,.12);border-radius:var(--r);padding:9px 30px 9px 12px;font-family:var(--font-b);font-size:13px;font-weight:300;color:var(--texte);cursor:pointer;outline:none;transition:border-color .2s;margin-bottom:0}
+.sel:focus{border-color:var(--vert)}
+.ta{width:100%;background:var(--creme);border:1px solid rgba(17,17,16,.12);border-radius:var(--r);padding:11px 14px;font-family:var(--font-b);font-size:13px;font-weight:300;color:var(--texte);line-height:1.65;resize:vertical;min-height:100px;outline:none;transition:border-color .2s,box-shadow .2s}
+.ta::placeholder{color:var(--t30)}
+.ta:focus{border-color:var(--vert);box-shadow:0 0 0 3px rgba(20,64,44,.07)}
+
+/* BUTTONS */
+.btn-main{width:100%;background:var(--vert);color:var(--creme);border:none;border-radius:var(--r);padding:13px 20px;font-family:var(--font-b);font-size:13px;font-weight:500;letter-spacing:.04em;cursor:pointer;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s,transform .15s,box-shadow .2s}
+.btn-main:hover:not(:disabled){background:var(--vert-l);transform:translateY(-1px);box-shadow:0 6px 18px rgba(20,64,44,.22)}
+.btn-main:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.btn-sec{display:inline-flex;align-items:center;gap:6px;background:transparent;color:var(--t50);border:1px solid rgba(17,17,16,.15);border-radius:var(--r);padding:9px 14px;font-family:var(--font-b);font-size:12px;font-weight:400;cursor:pointer;transition:border-color .15s,color .15s;white-space:nowrap}
+.btn-sec:hover{border-color:var(--vert);color:var(--vert)}
+.btn-row{display:flex;gap:10px;align-items:center;margin-top:14px}
+
+/* SPINNER */
+.spin{width:14px;height:14px;border:2px solid rgba(244,239,230,.3);border-top-color:var(--creme);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
-.result-panel{background:var(--blanc);border:1px solid rgba(17,17,16,0.1);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);position:sticky;top:20px}
-.state-empty{padding:44px 20px;text-align:center}
-.empty-icon{width:52px;height:52px;border:1px dashed rgba(17,17,16,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
-.empty-icon svg{width:20px;height:20px;color:var(--texte-30)}
-.empty-title{font-family:'Playfair Display',serif;font-size:15px;font-style:italic;margin-bottom:5px}
-.empty-sub{font-size:12px;color:var(--texte-30);line-height:1.5}
-.state-loading{display:none;padding:44px 20px;text-align:center}
-.load-rings{width:56px;height:56px;margin:0 auto 18px;position:relative}
+
+/* WARN / ERR */
+.warn{display:flex;gap:8px;background:rgba(201,138,16,.08);border:1px solid rgba(201,138,16,.25);border-radius:6px;padding:10px 12px;font-size:12px;font-weight:300;color:var(--texte);line-height:1.5;margin-bottom:14px}
+.warn svg{width:13px;height:13px;color:#a07010;flex-shrink:0;margin-top:1px}
+.err-box{font-size:13px;font-weight:300;color:var(--rouge);line-height:1.6;background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.18);border-radius:6px;padding:12px 14px;margin-top:10px}
+
+/* RESULT PANEL */
+.result-panel{background:var(--blanc);border:1px solid rgba(17,17,16,0.1);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);position:sticky;top:80px;min-height:300px}
+
+/* State: empty */
+.r-empty{padding:40px 20px;text-align:center}
+.r-empty-ico{width:50px;height:50px;border:1px dashed rgba(17,17,16,.18);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+.r-empty-ico svg{width:20px;height:20px;color:var(--t30)}
+.r-empty-t{font-family:var(--font-t);font-size:15px;font-style:italic;color:var(--texte);margin-bottom:6px}
+.r-empty-s{font-size:12px;font-weight:300;color:var(--t30);line-height:1.5;max-width:200px;margin:0 auto}
+
+/* State: loading */
+.r-loading{padding:44px 20px;text-align:center;display:none}
+.rings{width:52px;height:52px;margin:0 auto 16px;position:relative}
 .ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid transparent}
-.ring:nth-child(1){border-top-color:var(--vert);animation:spin 1.2s linear infinite}
-.ring:nth-child(2){inset:8px;border-right-color:rgba(20,64,44,0.4);animation:spin .9s linear infinite reverse}
-.ring:nth-child(3){inset:16px;border-bottom-color:rgba(20,64,44,0.2);animation:spin 1.5s linear infinite}
-.load-text{font-family:'Playfair Display',serif;font-size:14px;font-style:italic;margin-bottom:5px}
-.load-sub{font-size:11.5px;color:var(--texte-30)}
-.bar-wrap{width:140px;height:2px;background:rgba(17,17,16,0.08);border-radius:2px;margin:16px auto 0;overflow:hidden}
-.bar{height:100%;background:var(--vert);border-radius:2px;width:0%;transition:width .4s ease}
-.state-result{display:none}
-.result-img{width:100%;display:block;aspect-ratio:1/1;object-fit:cover}
-.result-footer{padding:14px 16px;border-top:1px solid rgba(17,17,16,0.07);display:flex;align-items:center;justify-content:space-between;gap:10px}
-.result-meta{font-size:11px;color:var(--texte-50);line-height:1.4}
-.result-meta strong{display:block;font-weight:500;color:var(--texte);font-size:11.5px;margin-bottom:1px}
-.result-btns{display:flex;gap:7px}
-.btn-regen{display:inline-flex;align-items:center;gap:5px;background:transparent;color:var(--texte-50);border:1px solid rgba(17,17,16,0.15);border-radius:5px;padding:6px 11px;font-family:'Inter',sans-serif;font-size:11.5px;cursor:pointer;transition:border-color .2s,color .2s}
+.ring:nth-child(1){border-top-color:var(--vert);animation:spin 1.1s linear infinite}
+.ring:nth-child(2){inset:8px;border-right-color:rgba(20,64,44,.4);animation:spin .85s linear infinite reverse}
+.ring:nth-child(3){inset:18px;border-bottom-color:rgba(20,64,44,.2);animation:spin 1.4s linear infinite}
+.r-loading-t{font-family:var(--font-t);font-size:15px;font-style:italic;color:var(--texte);margin-bottom:4px}
+.r-loading-s{font-size:12px;font-weight:300;color:var(--t30)}
+.bar-wrap{width:130px;height:2px;background:rgba(17,17,16,.08);border-radius:2px;margin:14px auto 0;overflow:hidden}
+.bar-ind{height:100%;width:40%;background:var(--vert);border-radius:2px;animation:ind 1.5s ease-in-out infinite}
+@keyframes ind{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+
+/* State: result */
+.r-img-wrap{display:none}
+.r-img{width:100%;display:block;object-fit:cover;animation:reveal .4s ease forwards}
+@keyframes reveal{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+.r-footer{padding:14px 18px;border-top:1px solid rgba(17,17,16,.07);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.r-meta{font-size:11px;font-weight:300;color:var(--t50);line-height:1.4}
+.r-meta strong{display:block;font-weight:500;color:var(--texte);font-size:12px;margin-bottom:1px}
+.r-actions{display:flex;gap:8px}
+.btn-dl{display:inline-flex;align-items:center;gap:5px;background:var(--vert);color:var(--creme);border:none;border-radius:5px;padding:7px 14px;font-family:var(--font-b);font-size:12px;font-weight:500;cursor:pointer;transition:background .2s,transform .15s}
+.btn-dl:hover{background:var(--vert-l);transform:translateY(-1px)}
+.btn-dl svg{width:12px;height:12px}
+.btn-regen{display:inline-flex;align-items:center;gap:5px;background:transparent;color:var(--t50);border:1px solid rgba(17,17,16,.14);border-radius:5px;padding:6px 12px;font-family:var(--font-b);font-size:12px;font-weight:400;cursor:pointer;transition:border-color .15s,color .15s}
 .btn-regen:hover{border-color:var(--vert);color:var(--vert)}
 .btn-regen svg{width:11px;height:11px}
-.btn-dl{display:inline-flex;align-items:center;gap:5px;background:var(--vert);color:#F4EFE6;border:none;border-radius:5px;padding:6px 14px;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:500;cursor:pointer;text-decoration:none;transition:background .2s;white-space:nowrap}
-.btn-dl:hover{background:var(--vert-light)}
-.btn-dl svg{width:12px;height:12px}
-.state-error{display:none;padding:32px 20px;text-align:center}
-.err-icon{width:40px;height:40px;background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
-.err-icon svg{width:17px;height:17px;color:var(--rouge)}
-.err-title{font-family:'Playfair Display',serif;font-size:14px;font-style:italic;margin-bottom:5px}
-.err-msg{font-size:12px;color:var(--texte-50);margin-bottom:14px;line-height:1.5}
-.btn-retry{background:transparent;color:var(--vert);border:1px solid var(--vert-dim);border-radius:5px;padding:7px 16px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer}
-.btn-retry:hover{background:var(--vert-10)}
-@keyframes reveal{from{opacity:0;transform:scale(0.97)}to{opacity:1;transform:scale(1)}}
-.state-result.show{animation:reveal .4s cubic-bezier(0.16,1,0.3,1) forwards}
-.page-footer{border-top:1px solid rgba(17,17,16,0.08);padding:20px 40px;max-width:780px;margin:0 auto;display:flex;justify-content:space-between}
-.footer-copy,.footer-model{font-size:11px;color:var(--texte-30)}
-@media(max-width:640px){header{padding:0 20px}.container{padding:0 20px}.gen-grid{grid-template-columns:1fr}.result-panel{position:static}.page-footer{padding:20px;flex-direction:column;gap:6px}}
+
+/* FOOTER */
+.footer{border-top:1px solid rgba(17,17,16,.07);padding:18px 40px;max-width:800px;margin:0 auto;display:flex;justify-content:space-between}
+.footer span{font-size:11px;font-weight:300;color:var(--t30)}
+
+@media(max-width:680px){
+  .hdr,.hero,.layout,.footer{padding-left:20px;padding-right:20px}
+  .layout{grid-template-columns:1fr;gap:18px}
+  .result-panel{position:static}
+}
 </style>
 </head>
 <body>
-<header>
-  <div class="logo-wrap">
-    <div class="logo-mark">CF</div>
-    <span class="logo-text">Capway Finance</span>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-mark">CF</div>
+    <span class="hdr-name">Capway Finance</span>
   </div>
-  <div class="badge">OptiShot · Bêta</div>
+  <div class="hdr-badge">OptiShot · Bêta</div>
 </header>
 
-<div class="container">
-  <div class="hero">
-    <div class="eyebrow">Générateur de visuels IA</div>
-    <h1>Un visuel de<br><em>studio. En 30 secondes.</em></h1>
-    <p class="hero-sub">Uploadez une photo de votre monture, choisissez l'ambiance. L'IA analyse la monture puis génère un visuel professionnel prêt à publier.</p>
-  </div>
+<div class="hero">
+  <div class="eyebrow">Générateur de visuels IA</div>
+  <h1>Votre monture.<br><em>Son meilleur angle.</em></h1>
+  <p class="sub">Gemini analyse votre monture et compose le brief. Flux Dev génère le visuel niveau studio. Résultat en 30 secondes.</p>
+</div>
 
-  <div class="gen-grid">
-    <div class="panel">
-      <div class="panel-head">
-        <div class="panel-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
-        <div class="panel-title">Votre monture</div>
+<div class="layout">
+
+  <!-- PANNEAU GAUCHE -->
+  <div class="panel" id="leftPanel">
+
+    <!-- Étape 1 : Upload -->
+    <div id="step1">
+      <div class="ph">
+        <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+        <div class="ph-title">Votre monture</div>
+        <div class="ph-step">Étape 1 / 2</div>
       </div>
-      <div class="panel-body">
+      <div class="pb">
         <div class="upload-zone" id="uploadZone">
           <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
           <div class="upload-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-          <span class="upload-p">Cliquez ou glissez votre photo</span>
-          <span class="upload-s">JPG, PNG, WebP · max 10 Mo</span>
+          <span class="up1">Glissez ou cliquez pour uploader</span>
+          <span class="up2">JPG, PNG, WebP · 10 Mo max</span>
         </div>
-        <div class="preview-wrap" id="previewWrap">
-          <img id="previewImg" src="" alt="">
-          <button class="preview-remove" id="removeBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <div class="preview" id="preview">
+          <img id="previewImg" src="" alt="Aperçu">
+          <button class="preview-rm" id="removeBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           <div class="preview-name" id="previewName"></div>
         </div>
+        <div class="opt-label" id="optLabel">Sans photo, un prompt générique sera utilisé</div>
 
-        <label class="field-label">Ambiance souhaitée</label>
-        <select id="styleSel">
-          <option value="studio" selected>Studio — fond blanc</option>
+        <label class="lbl" style="margin-top:16px">Ambiance souhaitée</label>
+        <select class="sel" id="styleSelect">
+          <option value="studio">Studio — fond blanc</option>
           <option value="nature">Nature — lumière dorée</option>
           <option value="luxe">Luxe — marbre sombre</option>
-          <option value="urbain">Urbain — béton</option>
+          <option value="urbain">Urbain — béton, ville</option>
         </select>
 
-        <button class="btn-gen btn-ghost" id="analyzeBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <span id="analyzeTxt">Analyser la monture</span>
-          <div class="spinner" id="analyzeSpinner"></div>
+        <button class="btn-main" id="analyzeBtn" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span id="analyzeBtnTxt">Analyser la monture</span>
+          <div class="spin" id="analyzeSpin" style="display:none"></div>
         </button>
+      </div>
+    </div>
 
-        <div class="warn" id="analyzeWarn"></div>
+    <!-- Étape 2 : Prompt + Générer -->
+    <div id="step2" style="display:none">
+      <div class="ph">
+        <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <div class="ph-title">Brief visuel</div>
+        <div class="ph-step">Étape 2 / 2</div>
+      </div>
+      <div class="pb">
+        <div class="warn" id="warnBox" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span id="warnTxt"></span>
+        </div>
 
-        <div class="step2" id="step2">
-          <label class="field-label">Prompt généré — éditable</label>
-          <textarea id="promptTxt" placeholder="Le prompt généré par l'IA apparaîtra ici…" rows="4"></textarea>
-          <label class="field-label">Format</label>
-          <select id="ratioSel">
-            <option value="1:1" selected>1:1 · Instagram</option>
-            <option value="4:5">4:5 · Portrait</option>
-            <option value="16:9">16:9 · Bannière</option>
-            <option value="9:16">9:16 · Story</option>
-          </select>
-          <button class="btn-gen" id="genBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            <span id="genTxt">Générer le visuel</span>
-            <div class="spinner" id="spinner"></div>
+        <label class="lbl">Prompt généré — modifiable</label>
+        <textarea class="ta" id="promptTa" rows="5"></textarea>
+
+        <label class="lbl" style="margin-top:16px">Format de sortie</label>
+        <select class="sel" id="ratioSelect">
+          <option value="1:1">1:1 · Instagram carré</option>
+          <option value="4:5">4:5 · Portrait</option>
+          <option value="9:16">9:16 · Story</option>
+          <option value="16:9">16:9 · Bannière</option>
+        </select>
+
+        <div class="btn-row">
+          <button class="btn-sec" id="backBtn" type="button">← Recommencer</button>
+          <button class="btn-main" id="generateBtn" type="button" style="margin-top:0;flex:1">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span id="generateBtnTxt">Générer le visuel</span>
+            <div class="spin" id="generateSpin" style="display:none"></div>
           </button>
         </div>
       </div>
     </div>
 
-    <div class="result-panel">
-      <div class="state-empty" id="stEmpty">
-        <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
-        <div class="empty-title" id="emptyTitle">Votre visuel apparaîtra ici.</div>
-        <div class="empty-sub" id="emptySub">Uploadez une monture<br>et cliquez sur Analyser.</div>
+    <!-- Étape 3 : Résultat résumé -->
+    <div id="step3" style="display:none">
+      <div class="ph">
+        <div class="ph-icon" style="background:rgba(20,64,44,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--vert)"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="ph-title">Visuel généré</div>
       </div>
-      <div class="state-loading" id="stLoading">
-        <div class="load-rings"><div class="ring"></div><div class="ring"></div><div class="ring"></div></div>
-        <div class="load-text" id="loadText">Traitement en cours…</div>
-        <div class="load-sub" id="loadSub">Préparation</div>
-        <div class="bar-wrap"><div class="bar" id="bar"></div></div>
-      </div>
-      <div class="state-result" id="stResult">
-        <img id="resultImg" src="" alt="Visuel généré" class="result-img">
-        <div class="result-footer">
-          <div class="result-meta"><strong id="metaModel">fal.ai · Flux Dev</strong><span id="metaFormat">Format 1:1</span></div>
-          <div class="result-btns">
-            <button class="btn-regen" id="regenBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Relancer</button>
-            <button class="btn-dl" id="dlBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Télécharger</button>
-          </div>
+      <div class="pb">
+        <p style="font-size:13px;color:var(--vert);font-weight:500;margin-bottom:12px">✓ Image générée avec succès.</p>
+        <div class="btn-row">
+          <button class="btn-sec" id="resetBtn" type="button">← Nouvelle monture</button>
+          <button class="btn-main" id="regenBtn" type="button" style="margin-top:0;flex:1">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Relancer Flux
+          </button>
         </div>
       </div>
-      <div class="state-error" id="stError">
-        <div class="err-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
-        <div class="err-title">Opération échouée.</div>
-        <div class="err-msg" id="errMsg">Vérifiez votre connexion et réessayez.</div>
-        <button class="btn-retry" id="retryBtn">Réessayer</button>
+    </div>
+
+    <!-- Erreur -->
+    <div id="stepErr" style="display:none">
+      <div class="ph">
+        <div class="ph-icon" style="background:rgba(192,57,43,.1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--rouge)"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+        <div class="ph-title">Erreur</div>
+      </div>
+      <div class="pb">
+        <div class="err-box" id="errTxt"></div>
+        <div class="btn-row" style="margin-top:14px">
+          <button class="btn-sec" id="errBackBtn" type="button">← Recommencer</button>
+        </div>
       </div>
     </div>
+
+  </div>
+
+  <!-- PANNEAU DROIT — RÉSULTAT -->
+  <div class="result-panel">
+
+    <!-- Empty state -->
+    <div class="r-empty" id="rEmpty">
+      <div class="r-empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+      <div class="r-empty-t">Votre visuel apparaîtra ici.</div>
+      <div class="r-empty-s">Uploadez une photo et cliquez Analyser.</div>
+    </div>
+
+    <!-- Loading state -->
+    <div class="r-loading" id="rLoading">
+      <div class="rings"><div class="ring"></div><div class="ring"></div><div class="ring"></div></div>
+      <div class="r-loading-t">Flux Dev génère…</div>
+      <div class="r-loading-s">15 à 30 secondes</div>
+      <div class="bar-wrap"><div class="bar-ind"></div></div>
+    </div>
+
+    <!-- Result state -->
+    <div class="r-img-wrap" id="rResult">
+      <img id="resultImg" src="" alt="Visuel généré" class="r-img">
+      <div class="r-footer">
+        <div class="r-meta">
+          <strong>Flux Dev · fal.ai</strong>
+          <span id="rFormat">Format 1:1 · JPEG</span>
+        </div>
+        <div class="r-actions">
+          <button class="btn-regen" id="rRegenBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Relancer
+          </button>
+          <button class="btn-dl" id="dlBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Télécharger
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<div class="page-footer">
-  <span class="footer-copy">© 2025 Capway Finance · Outil interne</span>
-  <span class="footer-model">fal.ai · Flux Dev × Gemini 2.5</span>
+<div class="footer">
+  <span>© 2025 Capway Finance · Outil interne</span>
+  <span>Gemini 1.5 Flash + Flux Dev · fal.ai</span>
 </div>
 
 <script>
-const $=id=>document.getElementById(id);
-const fileInput=$('fileInput'),uploadZone=$('uploadZone'),previewWrap=$('previewWrap'),previewImg=$('previewImg'),previewName=$('previewName'),removeBtn=$('removeBtn'),styleSel=$('styleSel'),analyzeBtn=$('analyzeBtn'),analyzeTxt=$('analyzeTxt'),analyzeSpinner=$('analyzeSpinner'),analyzeWarn=$('analyzeWarn'),step2=$('step2'),promptTxt=$('promptTxt'),ratioSel=$('ratioSel'),genBtn=$('genBtn'),genTxt=$('genTxt'),spinner=$('spinner'),bar=$('bar'),loadText=$('loadText'),loadSub=$('loadSub'),resultImg=$('resultImg'),dlBtn=$('dlBtn'),errMsg=$('errMsg');
-let currentFile=null,busy=false;
+// ── État ─────────────────────────────────────────────────────
+let currentFile = null;
+let currentPrompt = '';
+let currentBase64 = '';
 
-fileInput.addEventListener('change',e=>handleFile(e.target.files[0]));
-function handleFile(f){if(!f)return;currentFile=f;const r=new FileReader();r.onload=e=>{previewImg.src=e.target.result;previewName.textContent=f.name+' · '+(f.size/1024).toFixed(0)+' Ko';uploadZone.style.display='none';previewWrap.style.display='block'};r.readAsDataURL(f)}
-removeBtn.addEventListener('click',()=>{currentFile=null;fileInput.value='';previewImg.src='';previewWrap.style.display='none';uploadZone.style.display=''});
+// ── DOM refs ──────────────────────────────────────────────────
+const uploadZone   = document.getElementById('uploadZone');
+const fileInput    = document.getElementById('fileInput');
+const preview      = document.getElementById('preview');
+const previewImg   = document.getElementById('previewImg');
+const previewName  = document.getElementById('previewName');
+const removeBtn    = document.getElementById('removeBtn');
+const optLabel     = document.getElementById('optLabel');
+const styleSelect  = document.getElementById('styleSelect');
+const analyzeBtn   = document.getElementById('analyzeBtn');
+const analyzeBtnTxt= document.getElementById('analyzeBtnTxt');
+const analyzeSpin  = document.getElementById('analyzeSpin');
+const step1        = document.getElementById('step1');
+const step2        = document.getElementById('step2');
+const step3        = document.getElementById('step3');
+const stepErr      = document.getElementById('stepErr');
+const promptTa     = document.getElementById('promptTa');
+const ratioSelect  = document.getElementById('ratioSelect');
+const generateBtn  = document.getElementById('generateBtn');
+const generateBtnTxt=document.getElementById('generateBtnTxt');
+const generateSpin = document.getElementById('generateSpin');
+const warnBox      = document.getElementById('warnBox');
+const warnTxt      = document.getElementById('warnTxt');
+const errTxt       = document.getElementById('errTxt');
+const backBtn      = document.getElementById('backBtn');
+const resetBtn     = document.getElementById('resetBtn');
+const regenBtn     = document.getElementById('regenBtn');
+const errBackBtn   = document.getElementById('errBackBtn');
+const rEmpty       = document.getElementById('rEmpty');
+const rLoading     = document.getElementById('rLoading');
+const rResult      = document.getElementById('rResult');
+const resultImg    = document.getElementById('resultImg');
+const rFormat      = document.getElementById('rFormat');
+const dlBtn        = document.getElementById('dlBtn');
+const rRegenBtn    = document.getElementById('rRegenBtn');
 
-function showState(n){['Empty','Loading','Result','Error'].forEach(s=>{$('st'+s).style.display=(s.toLowerCase()===n)?'':'none'});if(n==='result'){const el=$('stResult');el.classList.remove('show');void el.offsetWidth;el.classList.add('show')}}
-
-let pi=null;
-function startProgress(phrases){let p=0,i=0;bar.style.width='0%';loadSub.textContent=phrases[0];pi=setInterval(()=>{p+=(88-p)*0.06+Math.random()*1.5;p=Math.min(p,88);bar.style.width=p+'%';const ni=Math.floor((p/88)*(phrases.length-1));if(ni!==i&&ni<phrases.length){i=ni;loadSub.textContent=phrases[i]}},300)}
-function stopProgress(ok){clearInterval(pi);bar.style.width=ok?'100%':'0%'}
-
-async function analyze(){
-  if(busy)return;
-  if(!currentFile){uploadZone.style.borderColor='var(--rouge)';setTimeout(()=>uploadZone.style.borderColor='',1200);return}
-  busy=true;analyzeBtn.disabled=true;analyzeTxt.textContent='Analyse…';analyzeSpinner.style.display='block';analyzeBtn.querySelector('svg').style.display='none';analyzeWarn.classList.remove('show');
-  loadText.textContent='Analyse de la monture…';showState('loading');startProgress(['Lecture de la photo','Identification de la forme','Analyse des matériaux','Rédaction du prompt']);
-  try{
-    const fd=new FormData();fd.append('image',currentFile);fd.append('style',styleSel.value);
-    const res=await fetch('/api/analyze',{method:'POST',body:fd});
-    const data=await res.json();
-    if(!res.ok)throw new Error(data.error||'HTTP '+res.status);
-    stopProgress(true);await new Promise(r=>setTimeout(r,200));
-    promptTxt.value=data.prompt||'';
-    step2.classList.add('show');
-    if(data.warning){analyzeWarn.textContent='Analyse IA indisponible — prompt par défaut utilisé. ('+data.warning+')';analyzeWarn.classList.add('show')}
-    $('emptyTitle').textContent='Monture analysée.';
-    $('emptySub').innerHTML='Vérifiez le prompt à gauche<br>puis cliquez sur Générer.';
-    showState('empty');
-    promptTxt.focus();
-  }catch(e){
-    stopProgress(false);await new Promise(r=>setTimeout(r,150));
-    errMsg.textContent=e.message||'Erreur inconnue';showState('error');
-  }finally{busy=false;analyzeBtn.disabled=false;analyzeTxt.textContent='Analyser la monture';analyzeSpinner.style.display='none';analyzeBtn.querySelector('svg').style.display=''}
+// ── Navigation entre étapes ────────────────────────────────────
+function showStep(name) {
+  step1.style.display   = name === 'step1'   ? '' : 'none';
+  step2.style.display   = name === 'step2'   ? '' : 'none';
+  step3.style.display   = name === 'step3'   ? '' : 'none';
+  stepErr.style.display = name === 'stepErr' ? '' : 'none';
 }
 
-async function generate(){
-  if(busy)return;
-  const prompt=promptTxt.value.trim();
-  if(!prompt){promptTxt.style.borderColor='var(--rouge)';promptTxt.focus();setTimeout(()=>promptTxt.style.borderColor='',1200);return}
-  const ratio=ratioSel.value;
-  busy=true;genBtn.disabled=true;genTxt.textContent='Génération…';spinner.style.display='block';genBtn.querySelector('svg').style.display='none';
-  loadText.textContent='Génération en cours…';showState('loading');startProgress(['Composition de la scène','Application de l\'éclairage','Rendu de la monture','Finalisation des détails']);
-  try{
-    const res=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,ratio})});
-    const data=await res.json();
-    if(!res.ok)throw new Error(data.error||'HTTP '+res.status);
-    stopProgress(true);await new Promise(r=>setTimeout(r,300));
-    const src='data:image/jpeg;base64,'+data.image;
-    resultImg.src=src;
-    $('metaFormat').textContent='Format '+ratio+' · JPEG';
-    showState('result');
-    dlBtn.onclick=()=>{const a=document.createElement('a');a.href=src;a.download='optishot-'+Date.now()+'.jpg';a.click()};
-  }catch(e){
-    stopProgress(false);await new Promise(r=>setTimeout(r,150));
-    let msg=e.message||'Erreur inconnue';
-    errMsg.textContent=msg;showState('error');
-  }finally{busy=false;genBtn.disabled=false;genTxt.textContent='Générer le visuel';spinner.style.display='none';genBtn.querySelector('svg').style.display=''}
+function showResult(state) {
+  rEmpty.style.display   = state === 'empty'   ? '' : 'none';
+  rLoading.style.display = state === 'loading' ? '' : 'none';
+  rResult.style.display  = state === 'result'  ? '' : 'none';
 }
 
-analyzeBtn.addEventListener('click',analyze);
-genBtn.addEventListener('click',generate);
-$('regenBtn').addEventListener('click',generate);
-$('retryBtn').addEventListener('click',()=>{if(promptTxt.value.trim())generate();else analyze()});
-promptTxt.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))generate()});
+// ── Upload ────────────────────────────────────────────────────
+function handleFile(file) {
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { alert('Format non supporté.'); return; }
+  if (file.size > 10 * 1024 * 1024)   { alert('Fichier trop lourd (max 10 Mo).'); return; }
+  currentFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    previewImg.src = e.target.result;
+    previewName.textContent = file.name;
+    uploadZone.style.display = 'none';
+    preview.style.display = 'block';
+    optLabel.textContent = '✓ Photo prête — Gemini va analyser votre monture';
+  };
+  reader.readAsDataURL(file);
+}
+
+fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('over'));
+uploadZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadZone.classList.remove('over');
+  handleFile(e.dataTransfer.files[0]);
+});
+
+removeBtn.addEventListener('click', () => {
+  currentFile = null;
+  fileInput.value = '';
+  previewImg.src = '';
+  preview.style.display = 'none';
+  uploadZone.style.display = '';
+  optLabel.textContent = 'Sans photo, un prompt générique sera utilisé';
+});
+
+// ── Analyser ──────────────────────────────────────────────────
+analyzeBtn.addEventListener('click', async () => {
+  analyzeBtn.disabled = true;
+  analyzeBtnTxt.textContent = 'Analyse en cours…';
+  analyzeSpin.style.display = 'block';
+
+  try {
+    const fd = new FormData();
+    fd.append('style', styleSelect.value);
+    if (currentFile) fd.append('image', currentFile);
+
+    const res  = await fetch('/api/analyze', { method: 'POST', body: fd });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    currentPrompt = data.prompt || '';
+    promptTa.value = currentPrompt;
+
+    if (data.warning) {
+      warnBox.style.display = 'flex';
+      warnTxt.textContent = 'Analyse approximative — ' + data.warning;
+    } else {
+      warnBox.style.display = 'none';
+    }
+
+    showStep('step2');
+
+  } catch (err) {
+    errTxt.textContent = err.message;
+    showStep('stepErr');
+  } finally {
+    analyzeBtn.disabled = false;
+    analyzeBtnTxt.textContent = 'Analyser la monture';
+    analyzeSpin.style.display = 'none';
+  }
+});
+
+// ── Générer ───────────────────────────────────────────────────
+async function runGenerate() {
+  const prompt = promptTa.value.trim();
+  if (!prompt) { promptTa.focus(); return; }
+
+  generateBtn.disabled = true;
+  generateBtnTxt.textContent = 'Génération…';
+  generateSpin.style.display = 'block';
+  showResult('loading');
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, ratio: ratioSelect.value }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    if (!data.image) throw new Error("Aucune image reçue — vérifiez les logs Vercel.");
+
+    // ── AFFICHAGE DE L'IMAGE ──────────────────────────────────
+    currentBase64 = data.image;
+    const src = 'data:image/jpeg;base64,' + data.image;
+    resultImg.src = src;
+    rFormat.textContent = 'Format ' + ratioSelect.value + ' · JPEG';
+    showResult('result');
+    showStep('step3');
+
+  } catch (err) {
+    showResult('empty');
+    errTxt.textContent = err.message;
+    showStep('stepErr');
+  } finally {
+    generateBtn.disabled = false;
+    generateBtnTxt.textContent = 'Générer le visuel';
+    generateSpin.style.display = 'none';
+  }
+}
+
+generateBtn.addEventListener('click', runGenerate);
+regenBtn.addEventListener('click', runGenerate);
+rRegenBtn.addEventListener('click', () => { showStep('step2'); runGenerate(); });
+
+// ── Télécharger ───────────────────────────────────────────────
+dlBtn.addEventListener('click', () => {
+  if (!currentBase64) return;
+  const a = document.createElement('a');
+  a.href = 'data:image/jpeg;base64,' + currentBase64;
+  a.download = 'optishot-' + Date.now() + '.jpg';
+  a.click();
+});
+
+// ── Navigation retour ─────────────────────────────────────────
+backBtn.addEventListener('click',    () => { showStep('step1'); showResult('empty'); });
+resetBtn.addEventListener('click',   () => { showStep('step1'); showResult('empty'); currentFile=null; });
+errBackBtn.addEventListener('click', () => { showStep('step1'); showResult('empty'); });
+
+// Init
+showStep('step1');
+showResult('empty');
 </script>
 </body>
 </html>
