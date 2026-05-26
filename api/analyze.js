@@ -1,16 +1,17 @@
+// analyze.js v3 — multi-photos + 3 suggestions de prompts
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 const STYLE_CONTEXT = {
-  studio: 'professional white studio background, even soft-box lighting, subtle drop shadow beneath the frames',
-  nature: 'natural outdoor light, warm golden hour, stone or wood surface, soft botanical bokeh background',
-  luxe:   'dark polished marble surface, dramatic directional side light, luxury editorial, deep contrast',
-  urbain: 'matte concrete surface, cool directional urban light, architectural city background',
+  studio: 'professional white studio background, even soft-box lighting, clean product shot',
+  nature: 'warm golden hour sunlight, natural stone surface, green botanical bokeh background',
+  luxe:   'dark polished marble, dramatic side lighting, luxury editorial black background',
+  urbain: 'matte concrete surface, cool moody city light, minimalist urban background',
 };
 
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on('data', chunk => chunks.push(chunk));
+    req.on('data', c => chunks.push(c));
     req.on('end', () => resolve(Buffer.concat(chunks)));
     req.on('error', reject);
   });
@@ -18,24 +19,25 @@ function getRawBody(req) {
 
 function indexOf(buf, search, offset = 0) {
   for (let i = offset; i <= buf.length - search.length; i++) {
-    let found = true;
+    let ok = true;
     for (let j = 0; j < search.length; j++) {
-      if (buf[i + j] !== search[j]) { found = false; break; }
+      if (buf[i+j] !== search[j]) { ok = false; break; }
     }
-    if (found) return i;
+    if (ok) return i;
   }
   return -1;
 }
 
 function parseMultipart(buffer, boundary) {
   const sep = Buffer.from('--' + boundary);
-  const results = {};
+  const results = [];   // tableau pour accepter plusieurs "image"
+  const fields = {};
   let start = 0, pos;
   const parts = [];
   while ((pos = indexOf(buffer, sep, start)) !== -1) {
     parts.push(buffer.slice(start, pos));
     start = pos + sep.length;
-    if (buffer[start] === 13 && buffer[start + 1] === 10) start += 2;
+    if (buffer[start] === 13 && buffer[start+1] === 10) start += 2;
   }
   parts.push(buffer.slice(start));
   for (const part of parts.filter(p => p.length > 4)) {
@@ -50,12 +52,12 @@ function parseMultipart(buffer, boundary) {
     const filenameMatch = headers.match(/filename="([^"]+)"/i);
     const ctMatch = headers.match(/Content-Type:\s*([^\r\n]+)/i);
     if (filenameMatch) {
-      results[name] = { data: body, filename: filenameMatch[1], mime: ctMatch ? ctMatch[1].trim() : 'image/jpeg' };
+      results.push({ field: name, data: body, mime: ctMatch ? ctMatch[1].trim() : 'image/jpeg' });
     } else {
-      results[name] = { value: body.toString('utf8') };
+      fields[name] = body.toString('utf8');
     }
   }
-  return results;
+  return { images: results.filter(r => r.field === 'images[]' || r.field === 'image'), fields };
 }
 
 module.exports = async (req, res) => {
@@ -67,34 +69,51 @@ module.exports = async (req, res) => {
 
   try {
     const rawBody = await getRawBody(req);
-    const contentType = req.headers['content-type'] || '';
-    const boundary = contentType.split('boundary=')[1]?.split(';')[0]?.trim();
+    const ct = req.headers['content-type'] || '';
+    const boundary = ct.split('boundary=')[1]?.split(';')[0]?.trim();
     if (!boundary) return res.status(400).json({ error: 'Multipart manquant.' });
 
-    const fields = parseMultipart(rawBody, boundary);
-    const style = fields.style?.value || 'studio';
+    const { images, fields } = parseMultipart(rawBody, boundary);
+    const style = fields.style || 'studio';
     const ctx   = STYLE_CONTEXT[style] || STYLE_CONTEXT.studio;
-    const image = fields.image;
 
-    const fallbackPrompt = `Luxury eyeglasses, ${ctx}, tack sharp focus on frame details, photorealistic, commercial product photography, 8k`;
+    const fallbackPrompts = [
+      `Luxury eyeglasses isolated on ${ctx}, tack sharp focus on frames, photorealistic, 8k`,
+      `Eyeglasses product shot, ${ctx}, dramatic lighting, ultra detailed, commercial photography`,
+      `Premium glasses, ${ctx}, shallow depth of field, high-end editorial style, 8k`,
+    ];
 
-    if (!image) return res.status(200).json({ prompt: fallbackPrompt });
+    if (!images.length) return res.status(200).json({ prompts: fallbackPrompts });
 
     const apiKey = process.env.OPENROUTER_KEY;
-    if (!apiKey) return res.status(200).json({ prompt: fallbackPrompt, warning: 'OPENROUTER_KEY manquante.' });
+    if (!apiKey) return res.status(200).json({ prompts: fallbackPrompts, warning: 'OPENROUTER_KEY manquante.' });
 
-    const base64Image = image.data.toString('base64');
-    const mimeType    = image.mime || 'image/jpeg';
+    // Construire les parties image pour Gemini (max 4 photos)
+    const imageParts = images.slice(0, 4).map(img => ({
+      type: 'image_url',
+      image_url: { url: `data:${img.mime};base64,${img.data.toString('base64')}` },
+    }));
 
-    const instruction = `You are a professional product photographer specializing in luxury eyewear and a Flux AI prompt engineer.
-Analyze this eyeglass frame and write a Flux Dev image generation prompt for a high-end product photo.
-Photography setting to use: ${ctx}
-Rules:
-1. Identify frame shape (round/square/rectangular/cat-eye/aviator), rim color, material (acetate/metal/titanium), lens tint if present
-2. Incorporate the photography setting above
-3. Add lighting, surface, depth of field
-4. Stay under 60 words
-5. Output ONLY the prompt text — no explanation, no quotes, no preamble`;
+    const instruction = `You are a luxury eyewear product photographer and Flux AI prompt engineer.
+You receive ${imageParts.length} photo(s) of the same eyeglass frame taken by an optician with their phone. Hands may be visible — ignore them and focus only on the glasses.
+
+Analyze: frame shape, rim color, material (acetate/metal/titanium), lens tint, any distinctive details.
+
+Generate exactly 3 different Flux Dev image generation prompts. Each prompt = different mood/style.
+Photography setting for all: ${ctx}
+
+Format your response as JSON only, no other text:
+{
+  "frame_description": "brief description of the glasses in French",
+  "prompts": [
+    "prompt 1 in English, under 60 words",
+    "prompt 2 in English, under 60 words",
+    "prompt 3 in English, under 60 words"
+  ]
+}
+
+Each prompt must describe the EXACT frame (shape, color, material) + the photography setting + lighting + surface + depth of field.
+NO hands. NO people. Product photography only.`;
 
     const orRes = await fetch(OPENROUTER_URL, {
       method: 'POST',
@@ -109,12 +128,12 @@ Rules:
         messages: [{
           role: 'user',
           content: [
-            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Image}` } },
+            ...imageParts,
             { type: 'text', text: instruction },
           ],
         }],
-        max_tokens:  200,
-        temperature: 0.3,
+        max_tokens:  600,
+        temperature: 0.4,
       }),
     });
 
@@ -123,18 +142,33 @@ Rules:
       throw new Error(errData?.error?.message || `OpenRouter HTTP ${orRes.status}`);
     }
 
-    const data   = await orRes.json();
-    const prompt = data.choices?.[0]?.message?.content?.trim();
-    if (!prompt) throw new Error('Réponse Gemini vide.');
+    const data    = await orRes.json();
+    const content = data.choices?.[0]?.message?.content?.trim();
+    if (!content) throw new Error('Réponse Gemini vide.');
 
-    console.log('[analyze] Gemini OK:', prompt.slice(0, 80));
-    return res.status(200).json({ prompt });
+    // Parser le JSON retourné par Gemini
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('Format JSON invalide.');
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    const prompts = parsed.prompts?.slice(0, 3);
+    if (!prompts?.length) throw new Error('Aucun prompt généré.');
+
+    console.log('[analyze] OK —', parsed.frame_description);
+    return res.status(200).json({
+      prompts,
+      frame_description: parsed.frame_description || '',
+    });
 
   } catch (err) {
     console.error('[analyze] error:', err.message);
     const ctx = STYLE_CONTEXT.studio;
     return res.status(200).json({
-      prompt: `Luxury eyeglasses, ${ctx}, tack sharp focus on frame details, photorealistic, commercial quality, 8k`,
+      prompts: [
+        `Luxury eyeglasses on ${ctx}, tack sharp focus, photorealistic, 8k`,
+        `Premium glasses product shot, ${ctx}, dramatic lighting, commercial photography`,
+        `Eyeglasses editorial, ${ctx}, shallow depth of field, high-end style`,
+      ],
       warning: err.message,
     });
   }
