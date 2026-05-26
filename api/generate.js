@@ -1,9 +1,9 @@
-// Mode intelligent :
-// - Si une image est fournie → img2img (garde les lunettes, change le décor)
-// - Sinon → txt2img (génération depuis le texte)
+// Stratégie :
+// - Avec image → fal-ai/bria/background/replace (garde le sujet, change le fond)
+// - Sans image → fal-ai/flux/dev (génération depuis texte)
 
-const FAL_TXT2IMG = 'https://fal.run/fal-ai/flux/dev';
-const FAL_IMG2IMG = 'https://fal.run/fal-ai/flux/dev/image-to-image';
+const FAL_BG_REPLACE = 'https://fal.run/fal-ai/bria/background/replace';
+const FAL_TXT2IMG    = 'https://fal.run/fal-ai/flux/dev';
 
 const SIZE_MAP = {
   '1:1':  { width: 1024, height: 1024 },
@@ -12,10 +12,18 @@ const SIZE_MAP = {
   '9:16': { width: 576,  height: 1024 },
 };
 
+// Prompts de fond selon l'ambiance
+const BG_PROMPTS = {
+  studio: 'clean professional white studio background, soft even lighting, subtle shadow beneath the glasses, minimal product photography',
+  nature: 'warm golden hour sunlight, lush green bokeh background, natural stone surface, outdoor lifestyle photography',
+  luxe:   'dark polished marble surface, dramatic side lighting, black luxury background, editorial high-end photography',
+  urbain: 'urban concrete surface, cool moody city light, architectural minimalist background, street photography',
+};
+
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on('data', (chunk) => chunks.push(chunk));
+    req.on('data', chunk => chunks.push(chunk));
     req.on('end', () => resolve(Buffer.concat(chunks)));
     req.on('error', reject);
   });
@@ -43,7 +51,7 @@ function parseMultipart(buffer, boundary) {
     if (buffer[start] === 13 && buffer[start + 1] === 10) start += 2;
   }
   parts.push(buffer.slice(start));
-  for (const part of parts.filter((p) => p.length > 4)) {
+  for (const part of parts.filter(p => p.length > 4)) {
     const idx = indexOf(part, Buffer.from('\r\n\r\n'));
     if (idx === -1) continue;
     const headers = part.slice(0, idx).toString('utf8');
@@ -67,81 +75,77 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const falKey = process.env.FAL_KEY;
   if (!falKey) return res.status(500).json({ error: 'FAL_KEY manquante sur Vercel.' });
 
+  const headers = {
+    Authorization: `Key ${falKey}`,
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  };
+
   try {
     const contentType = req.headers['content-type'] || '';
     let promptRaw = '';
+    let style = 'studio';
     let ratio = '1:1';
     let imageBase64 = null;
     let imageMime = 'image/jpeg';
 
     if (contentType.includes('multipart/form-data')) {
-      // Reçoit image + prompt + ratio
       const rawBody = await getRawBody(req);
       const boundary = contentType.split('boundary=')[1]?.split(';')[0]?.trim();
       if (!boundary) return res.status(400).json({ error: 'Boundary manquant.' });
       const fields = parseMultipart(rawBody, boundary);
       promptRaw = fields.prompt?.value || '';
-      ratio = fields.ratio?.value || '1:1';
+      style     = fields.style?.value  || 'studio';
+      ratio     = fields.ratio?.value  || '1:1';
       if (fields.image) {
         imageBase64 = fields.image.data.toString('base64');
-        imageMime = fields.image.mime || 'image/jpeg';
+        imageMime   = fields.image.mime || 'image/jpeg';
       }
     } else {
-      // JSON legacy (sans image)
       const raw = await getRawBody(req);
       const payload = raw.length ? JSON.parse(raw.toString('utf8')) : {};
       promptRaw = (payload.prompt || '').toString().trim();
-      ratio = payload.ratio || '1:1';
+      ratio     = payload.ratio || '1:1';
     }
 
-    if (!promptRaw.trim()) return res.status(400).json({ error: 'Prompt requis.' });
+    if (!promptRaw.trim() && !imageBase64) {
+      return res.status(400).json({ error: 'Prompt ou image requis.' });
+    }
 
-    const headers = {
-      Authorization: `Key ${falKey}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    };
-
-    let falRes;
+    let falRes, data, imageUrl;
 
     if (imageBase64) {
-      // ── MODE IMG2IMG : garde les vraies lunettes, change le décor ──
-      const backgroundPrompt = [
-        promptRaw.trim(),
-        'keep the exact same eyeglass frames',
-        'same glasses shape color and material',
-        'only change the background and lighting',
-        'product photography',
-        'tack sharp focus on frames',
-        'photorealistic',
-      ].join(', ');
+      // ── MODE BACKGROUND REPLACE ────────────────────────────
+      // Garde exactement les lunettes, remplace uniquement le fond
+      const bgPrompt = BG_PROMPTS[style] || BG_PROMPTS.studio;
+      const finalBgPrompt = promptRaw
+        ? `${promptRaw}, ${bgPrompt}`
+        : bgPrompt;
 
       const imageDataUrl = `data:${imageMime};base64,${imageBase64}`;
 
-      falRes = await fetch(FAL_IMG2IMG, {
+      console.log('[generate] mode: background-replace, style:', style);
+
+      falRes = await fetch(FAL_BG_REPLACE, {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          image_url:             imageDataUrl,
-          prompt:                backgroundPrompt,
-          strength:              0.55,   // 0 = image identique, 1 = tout regénéré
-          num_inference_steps:   40,
-          guidance_scale:        7.0,
-          output_format:         'jpeg',
-          enable_safety_checker: false,
-          seed:                  Math.floor(Math.random() * 9999999),
+          image_url:        imageDataUrl,
+          prompt:           finalBgPrompt,
+          negative_prompt:  'blurry, low quality, distorted, overexposed, text, watermark',
+          num_images:       1,
+          sync_mode:        true,
         }),
       });
 
     } else {
-      // ── MODE TXT2IMG : pas d'image fournie ──
+      // ── MODE TXT2IMG ────────────────────────────────────────
       const fullPrompt = [
         promptRaw.trim(),
         'luxury eyeglasses',
@@ -150,6 +154,8 @@ module.exports = async (req, res) => {
         'no people, no hands, no text, no watermark',
         'photorealistic',
       ].join(', ');
+
+      console.log('[generate] mode: txt2img');
 
       falRes = await fetch(FAL_TXT2IMG, {
         method: 'POST',
@@ -174,10 +180,13 @@ module.exports = async (req, res) => {
       return res.status(falRes.status).json({ error: String(msg).slice(0, 300) });
     }
 
-    const data = await falRes.json();
-    const imageUrl = data?.images?.[0]?.url;
+    data = await falRes.json();
+
+    // bria retourne images[0].url OU image.url selon la version
+    imageUrl = data?.images?.[0]?.url || data?.image?.url;
+
     if (!imageUrl) {
-      console.error('[generate] no image:', JSON.stringify(data).slice(0, 300));
+      console.error('[generate] no image url in response:', JSON.stringify(data).slice(0, 400));
       return res.status(502).json({ error: "fal.ai n'a retourné aucune image." });
     }
 
