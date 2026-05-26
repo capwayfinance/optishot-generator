@@ -363,9 +363,9 @@ function showStep(name) {
 }
 
 function showResult(state) {
-  rEmpty.style.display   = state === 'empty'   ? '' : 'none';
-  rLoading.style.display = state === 'loading' ? '' : 'none';
-  rResult.style.display  = state === 'result'  ? '' : 'none';
+  rEmpty.style.display   = state === 'empty'   ? 'block' : 'none';
+  rLoading.style.display = state === 'loading' ? 'block' : 'none';
+  rResult.style.display  = state === 'result'  ? 'block' : 'none';
 }
 
 // ── Upload ────────────────────────────────────────────────────
