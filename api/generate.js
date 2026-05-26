@@ -1,4 +1,3 @@
-// fal.ai (Flux Dev) text-to-image. Reads JSON { prompt, ratio }.
 const FAL_BASE = 'https://fal.run/fal-ai/flux/dev';
 
 const SIZE_MAP = {
@@ -24,16 +23,6 @@ async function readPayload(req) {
   return raw && raw.length ? JSON.parse(raw.toString('utf8')) : {};
 }
 
-function formatError(msg = '') {
-  const m = msg.toLowerCase();
-  if (msg.includes('401') || m.includes('unauthorized'))
-    return 'Clé fal.ai invalide. Vérifiez FAL_KEY dans Vercel → Settings → Environment Variables.';
-  if (msg.includes('402') || m.includes('credit') || m.includes('balance'))
-    return 'Crédits fal.ai insuffisants. Rechargez sur fal.ai/dashboard.';
-  if (msg.includes('429')) return 'Trop de requêtes. Attendez quelques secondes.';
-  return msg.length > 200 ? msg.slice(0, 200) + '…' : msg;
-}
-
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -43,7 +32,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const falKey = process.env.FAL_KEY;
-  if (!falKey) return res.status(500).json({ error: 'Clé fal.ai manquante (FAL_KEY).' });
+  if (!falKey) return res.status(500).json({ error: 'FAL_KEY manquante sur Vercel.' });
 
   try {
     const payload = await readPayload(req);
@@ -55,10 +44,7 @@ module.exports = async (req, res) => {
       promptRaw,
       'professional commercial product photography',
       'ultra sharp focus',
-      'no people',
-      'no hands',
-      'no text',
-      'no watermark',
+      'no people, no hands, no text, no watermark',
       'photorealistic',
     ].join(', ');
 
@@ -77,31 +63,33 @@ module.exports = async (req, res) => {
         guidance_scale: 3.5,
         output_format: 'jpeg',
         enable_safety_checker: false,
-        seed: Math.floor(Math.random() * 9_999_999),
+        seed: Math.floor(Math.random() * 9999999),
       }),
     });
 
     if (!falRes.ok) {
       const errData = await falRes.json().catch(() => ({}));
       const msg = errData?.detail?.[0]?.msg || errData?.detail || errData?.message || `HTTP ${falRes.status}`;
-      return res.status(falRes.status).json({ error: formatError(typeof msg === 'string' ? msg : `HTTP ${falRes.status}`) });
+      console.error('[generate] fal.ai error:', msg);
+      return res.status(falRes.status).json({ error: String(msg).slice(0, 300) });
     }
 
     const data = await falRes.json();
     const imageUrl = data?.images?.[0]?.url;
     if (!imageUrl) {
-      console.error('[generate] fal.ai response without image:', JSON.stringify(data).slice(0, 500));
+      console.error('[generate] no image in response:', JSON.stringify(data).slice(0, 300));
       return res.status(502).json({ error: "fal.ai n'a retourné aucune image." });
     }
 
     const imgRes = await fetch(imageUrl);
-    if (!imgRes.ok) return res.status(502).json({ error: `Récupération de l'image échouée (HTTP ${imgRes.status}).` });
+    if (!imgRes.ok) return res.status(502).json({ error: `Récupération image échouée (HTTP ${imgRes.status}).` });
     const arrayBuffer = await imgRes.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString('base64');
 
     return res.status(200).json({ image: base64 });
+
   } catch (err) {
     console.error('[generate] error:', err.message);
-    return res.status(500).json({ error: formatError(err.message) });
+    return res.status(500).json({ error: err.message.slice(0, 300) });
   }
 };
