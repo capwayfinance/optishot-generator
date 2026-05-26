@@ -1,4 +1,4 @@
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
 
 const STYLE_CONTEXT = {
   studio: 'professional white studio, even soft-box lighting, subtle drop shadow beneath the frames',
@@ -83,24 +83,21 @@ module.exports = async (req, res) => {
 
     const apiKey = process.env.GEMINI_KEY;
     if (!apiKey) {
-      return res.status(200).json({
-        prompt: fallbackPrompt,
-        warning: 'GEMINI_KEY manquante — prompt par défaut utilisé.',
-      });
+      return res.status(200).json({ prompt: fallbackPrompt, warning: 'GEMINI_KEY manquante.' });
     }
 
     const base64Image = image.data.toString('base64');
     const mimeType = image.mime || 'image/jpeg';
 
     const instruction = `You are a professional product photographer specializing in luxury eyewear and a Flux AI prompt engineer.
-Analyze this eyeglass frame carefully and write a Flux Dev image generation prompt for a high-end product photo.
-Photography setting to use: ${ctx}
+Analyze this eyeglass frame and write a Flux Dev image generation prompt for a high-end product photo.
+Photography setting: ${ctx}
 Rules:
-1. Identify frame shape (round/square/rectangular/cat-eye/aviator/oval), rim color, material appearance (acetate/metal/titanium/plastic), lens tint if present
-2. Incorporate the exact photography setting specified above
-3. Add: lighting description, surface/background, depth of field
+1. Identify frame shape, rim color, material (acetate/metal/titanium), lens tint if present
+2. Incorporate the photography setting above
+3. Add lighting, surface/background, depth of field details
 4. Stay under 60 words
-5. Output ONLY the prompt text — no explanation, no quotes, no preamble`;
+5. Output ONLY the prompt — no explanation, no quotes`;
 
     const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
       method: 'POST',
@@ -108,33 +105,21 @@ Rules:
       body: JSON.stringify({
         contents: [{
           parts: [
-            {
-              inline_data: {
-                mime_type: mimeType,
-                data: base64Image,
-              },
-            },
-            {
-              text: instruction,
-            },
+            { inline_data: { mime_type: mimeType, data: base64Image } },
+            { text: instruction },
           ],
         }],
-        generationConfig: {
-          maxOutputTokens: 200,
-          temperature: 0.3,
-        },
+        generationConfig: { maxOutputTokens: 200, temperature: 0.3 },
       }),
     });
 
     if (!geminiRes.ok) {
       const errData = await geminiRes.json().catch(() => ({}));
-      const msg = errData?.error?.message || `Gemini HTTP ${geminiRes.status}`;
-      throw new Error(msg);
+      throw new Error(errData?.error?.message || `Gemini HTTP ${geminiRes.status}`);
     }
 
     const data = await geminiRes.json();
     const prompt = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-
     if (!prompt) throw new Error('Réponse Gemini vide.');
 
     return res.status(200).json({ prompt });
