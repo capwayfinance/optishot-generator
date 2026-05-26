@@ -1,8 +1,7 @@
 // Essaie gemini-2.0-flash-exp (v1beta), fallback sur prompt générique
 const GEMINI_MODELS = [
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent',
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent',
 ];
 
 const STYLE_CONTEXT = {
