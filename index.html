@@ -19,26 +19,18 @@
 }
 html{scroll-behavior:smooth}
 body{background:var(--creme);color:var(--texte);font-family:var(--font-b);font-weight:300;line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
-
-/* HEADER */
 .hdr{background:var(--vert);padding:0 40px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .hdr-brand{display:flex;align-items:center;gap:12px}
 .hdr-mark{width:28px;height:28px;border:1px solid rgba(244,239,230,0.35);display:flex;align-items:center;justify-content:center;font-family:var(--font-t);font-size:12px;color:rgba(244,239,230,0.9);font-style:italic}
 .hdr-name{font-size:13px;font-weight:400;color:rgba(244,239,230,0.7);letter-spacing:.08em}
 .hdr-badge{font-size:10px;font-weight:500;color:var(--vert);background:rgba(244,239,230,0.88);padding:3px 10px;letter-spacing:.08em;text-transform:uppercase;border-radius:2px}
-
-/* HERO */
 .hero{padding:48px 40px 0;max-width:800px;margin:0 auto}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:500;color:var(--vert);letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px}
 .eyebrow::before{content:'';display:inline-block;width:16px;height:1px;background:var(--vert);opacity:.5}
 h1{font-family:var(--font-t);font-size:clamp(2rem,4vw,3.2rem);font-weight:400;color:var(--texte);line-height:1.1;margin-bottom:12px}
 h1 em{font-style:italic;color:var(--vert)}
 .sub{font-size:15px;font-weight:300;color:var(--t50);max-width:500px;line-height:1.7;padding-bottom:36px;border-bottom:1px solid rgba(17,17,16,0.1)}
-
-/* LAYOUT */
 .layout{max-width:800px;margin:0 auto;padding:32px 40px 80px;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
-
-/* PANELS */
 .panel{background:var(--blanc);border:1px solid rgba(17,17,16,0.1);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
 .ph{padding:14px 20px;border-bottom:1px solid rgba(17,17,16,0.07);display:flex;align-items:center;gap:10px}
 .ph-icon{width:26px;height:26px;background:var(--vert-10);border-radius:6px;display:flex;align-items:center;justify-content:center}
@@ -46,8 +38,6 @@ h1 em{font-style:italic;color:var(--vert)}
 .ph-title{font-family:var(--font-t);font-size:14px;font-weight:500;color:var(--texte);flex:1}
 .ph-step{font-size:11px;color:var(--t30)}
 .pb{padding:20px}
-
-/* UPLOAD */
 .upload-zone{border:1.5px dashed rgba(20,64,44,0.28);border-radius:var(--r);padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-bottom:8px}
 .upload-zone:hover,.upload-zone.over{border-color:var(--vert);background:var(--vert-10)}
 .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
@@ -56,50 +46,40 @@ h1 em{font-style:italic;color:var(--vert)}
 .upload-ico svg{width:16px;height:16px;color:var(--vert)}
 .up1{font-size:13px;font-weight:500;color:var(--vert);display:block;margin-bottom:3px}
 .up2{font-size:11.5px;font-weight:300;color:var(--t30);display:block}
-
 .preview{border-radius:6px;overflow:hidden;margin-bottom:8px;position:relative;display:none}
 .preview img{width:100%;height:120px;object-fit:cover;display:block}
 .preview-rm{position:absolute;top:6px;right:6px;width:24px;height:24px;background:rgba(17,17,16,.65);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff}
 .preview-rm svg{width:11px;height:11px}
 .preview-name{padding:6px 10px;font-size:11px;color:var(--t50);background:rgba(17,17,16,.03);border-top:1px solid rgba(17,17,16,.06);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.opt-label{font-size:11px;font-weight:300;color:var(--t30);font-style:italic;margin-bottom:4px}
 
-/* FIELDS */
+/* Badge img2img */
+.mode-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:var(--vert);background:var(--vert-10);border:1px solid var(--vert-20);border-radius:100px;padding:3px 10px;margin-bottom:8px}
+.mode-badge svg{width:11px;height:11px}
+.mode-info{font-size:11px;font-weight:300;color:var(--t30);font-style:italic;margin-bottom:4px}
+
 .lbl{display:block;font-size:10px;font-weight:500;color:var(--t50);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
-.sel{width:100%;appearance:none;background:var(--creme) url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23111110' stroke-opacity='0.4' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;border:1px solid rgba(17,17,16,.12);border-radius:var(--r);padding:9px 30px 9px 12px;font-family:var(--font-b);font-size:13px;font-weight:300;color:var(--texte);cursor:pointer;outline:none;transition:border-color .2s;margin-bottom:0}
+.sel{width:100%;appearance:none;background:var(--creme) url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23111110' stroke-opacity='0.4' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;border:1px solid rgba(17,17,16,.12);border-radius:var(--r);padding:9px 30px 9px 12px;font-family:var(--font-b);font-size:13px;font-weight:300;color:var(--texte);cursor:pointer;outline:none;transition:border-color .2s}
 .sel:focus{border-color:var(--vert)}
 .ta{width:100%;background:var(--creme);border:1px solid rgba(17,17,16,.12);border-radius:var(--r);padding:11px 14px;font-family:var(--font-b);font-size:13px;font-weight:300;color:var(--texte);line-height:1.65;resize:vertical;min-height:100px;outline:none;transition:border-color .2s,box-shadow .2s}
 .ta::placeholder{color:var(--t30)}
 .ta:focus{border-color:var(--vert);box-shadow:0 0 0 3px rgba(20,64,44,.07)}
-
-/* BUTTONS */
 .btn-main{width:100%;background:var(--vert);color:var(--creme);border:none;border-radius:var(--r);padding:13px 20px;font-family:var(--font-b);font-size:13px;font-weight:500;letter-spacing:.04em;cursor:pointer;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s,transform .15s,box-shadow .2s}
 .btn-main:hover:not(:disabled){background:var(--vert-l);transform:translateY(-1px);box-shadow:0 6px 18px rgba(20,64,44,.22)}
 .btn-main:disabled{opacity:.55;cursor:not-allowed;transform:none}
 .btn-sec{display:inline-flex;align-items:center;gap:6px;background:transparent;color:var(--t50);border:1px solid rgba(17,17,16,.15);border-radius:var(--r);padding:9px 14px;font-family:var(--font-b);font-size:12px;font-weight:400;cursor:pointer;transition:border-color .15s,color .15s;white-space:nowrap}
 .btn-sec:hover{border-color:var(--vert);color:var(--vert)}
 .btn-row{display:flex;gap:10px;align-items:center;margin-top:14px}
-
-/* SPINNER */
-.spin{width:14px;height:14px;border:2px solid rgba(244,239,230,.3);border-top-color:var(--creme);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* WARN / ERR */
 .warn{display:flex;gap:8px;background:rgba(201,138,16,.08);border:1px solid rgba(201,138,16,.25);border-radius:6px;padding:10px 12px;font-size:12px;font-weight:300;color:var(--texte);line-height:1.5;margin-bottom:14px}
 .warn svg{width:13px;height:13px;color:#a07010;flex-shrink:0;margin-top:1px}
 .err-box{font-size:13px;font-weight:300;color:var(--rouge);line-height:1.6;background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.18);border-radius:6px;padding:12px 14px;margin-top:10px}
-
-/* RESULT PANEL */
+.spin{width:14px;height:14px;border:2px solid rgba(244,239,230,.3);border-top-color:var(--creme);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
 .result-panel{background:var(--blanc);border:1px solid rgba(17,17,16,0.1);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);position:sticky;top:80px;min-height:300px}
-
-/* State: empty */
 .r-empty{padding:40px 20px;text-align:center}
 .r-empty-ico{width:50px;height:50px;border:1px dashed rgba(17,17,16,.18);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
 .r-empty-ico svg{width:20px;height:20px;color:var(--t30)}
 .r-empty-t{font-family:var(--font-t);font-size:15px;font-style:italic;color:var(--texte);margin-bottom:6px}
 .r-empty-s{font-size:12px;font-weight:300;color:var(--t30);line-height:1.5;max-width:200px;margin:0 auto}
-
-/* State: loading */
 .r-loading{padding:44px 20px;text-align:center;display:none}
 .rings{width:52px;height:52px;margin:0 auto 16px;position:relative}
 .ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid transparent}
@@ -111,8 +91,6 @@ h1 em{font-style:italic;color:var(--vert)}
 .bar-wrap{width:130px;height:2px;background:rgba(17,17,16,.08);border-radius:2px;margin:14px auto 0;overflow:hidden}
 .bar-ind{height:100%;width:40%;background:var(--vert);border-radius:2px;animation:ind 1.5s ease-in-out infinite}
 @keyframes ind{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
-
-/* State: result */
 .r-img-wrap{display:none}
 .r-img{width:100%;display:block;object-fit:cover;animation:reveal .4s ease forwards}
 @keyframes reveal{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
@@ -126,11 +104,8 @@ h1 em{font-style:italic;color:var(--vert)}
 .btn-regen{display:inline-flex;align-items:center;gap:5px;background:transparent;color:var(--t50);border:1px solid rgba(17,17,16,.14);border-radius:5px;padding:6px 12px;font-family:var(--font-b);font-size:12px;font-weight:400;cursor:pointer;transition:border-color .15s,color .15s}
 .btn-regen:hover{border-color:var(--vert);color:var(--vert)}
 .btn-regen svg{width:11px;height:11px}
-
-/* FOOTER */
 .footer{border-top:1px solid rgba(17,17,16,.07);padding:18px 40px;max-width:800px;margin:0 auto;display:flex;justify-content:space-between}
 .footer span{font-size:11px;font-weight:300;color:var(--t30)}
-
 @media(max-width:680px){
   .hdr,.hero,.layout,.footer{padding-left:20px;padding-right:20px}
   .layout{grid-template-columns:1fr;gap:18px}
@@ -151,7 +126,7 @@ h1 em{font-style:italic;color:var(--vert)}
 <div class="hero">
   <div class="eyebrow">Générateur de visuels IA</div>
   <h1>Votre monture.<br><em>Son meilleur angle.</em></h1>
-  <p class="sub">Gemini analyse votre monture et compose le brief. Flux Dev génère le visuel niveau studio. Résultat en 30 secondes.</p>
+  <p class="sub">Uploadez votre monture — l'IA garde exactement vos lunettes et change uniquement le décor et la lumière.</p>
 </div>
 
 <div class="layout">
@@ -159,7 +134,7 @@ h1 em{font-style:italic;color:var(--vert)}
   <!-- PANNEAU GAUCHE -->
   <div class="panel" id="leftPanel">
 
-    <!-- Étape 1 : Upload -->
+    <!-- Étape 1 -->
     <div id="step1">
       <div class="ph">
         <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
@@ -171,18 +146,25 @@ h1 em{font-style:italic;color:var(--vert)}
           <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
           <div class="upload-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
           <span class="up1">Glissez ou cliquez pour uploader</span>
-          <span class="up2">JPG, PNG, WebP · 10 Mo max</span>
+          <span class="up2">Photo de vos lunettes · JPG, PNG, WebP</span>
         </div>
         <div class="preview" id="preview">
           <img id="previewImg" src="" alt="Aperçu">
           <button class="preview-rm" id="removeBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
           <div class="preview-name" id="previewName"></div>
         </div>
-        <div class="opt-label" id="optLabel">Sans photo, un prompt générique sera utilisé</div>
+        <div id="modeInfo" style="display:none">
+          <div class="mode-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            Mode image-to-image activé
+          </div>
+          <div class="mode-info">Vos lunettes seront conservées exactement. Seul le décor change.</div>
+        </div>
+        <div class="mode-info" id="noImageInfo">Sans photo, l'IA génère des lunettes génériques.</div>
 
         <label class="lbl" style="margin-top:16px">Ambiance souhaitée</label>
         <select class="sel" id="styleSelect">
-          <option value="studio">Studio — fond blanc</option>
+          <option value="studio">Studio — fond blanc épuré</option>
           <option value="nature">Nature — lumière dorée</option>
           <option value="luxe">Luxe — marbre sombre</option>
           <option value="urbain">Urbain — béton, ville</option>
@@ -196,7 +178,7 @@ h1 em{font-style:italic;color:var(--vert)}
       </div>
     </div>
 
-    <!-- Étape 2 : Prompt + Générer -->
+    <!-- Étape 2 -->
     <div id="step2" style="display:none">
       <div class="ph">
         <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
@@ -209,8 +191,8 @@ h1 em{font-style:italic;color:var(--vert)}
           <span id="warnTxt"></span>
         </div>
 
-        <label class="lbl">Prompt généré — modifiable</label>
-        <textarea class="ta" id="promptTa" rows="5"></textarea>
+        <label class="lbl">Description du décor souhaité</label>
+        <textarea class="ta" id="promptTa" rows="4"></textarea>
 
         <label class="lbl" style="margin-top:16px">Format de sortie</label>
         <select class="sel" id="ratioSelect">
@@ -231,19 +213,19 @@ h1 em{font-style:italic;color:var(--vert)}
       </div>
     </div>
 
-    <!-- Étape 3 : Résultat résumé -->
+    <!-- Étape 3 succès -->
     <div id="step3" style="display:none">
       <div class="ph">
         <div class="ph-icon" style="background:rgba(20,64,44,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--vert)"><polyline points="20 6 9 17 4 12"/></svg></div>
         <div class="ph-title">Visuel généré</div>
       </div>
       <div class="pb">
-        <p style="font-size:13px;color:var(--vert);font-weight:500;margin-bottom:12px">✓ Image générée avec succès.</p>
+        <p style="font-size:13px;color:var(--vert);font-weight:500;margin-bottom:14px">✓ Image générée avec succès.</p>
         <div class="btn-row">
           <button class="btn-sec" id="resetBtn" type="button">← Nouvelle monture</button>
           <button class="btn-main" id="regenBtn" type="button" style="margin-top:0;flex:1">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-            Relancer Flux
+            Relancer
           </button>
         </div>
       </div>
@@ -265,30 +247,24 @@ h1 em{font-style:italic;color:var(--vert)}
 
   </div>
 
-  <!-- PANNEAU DROIT — RÉSULTAT -->
+  <!-- PANNEAU DROIT -->
   <div class="result-panel">
-
-    <!-- Empty state -->
     <div class="r-empty" id="rEmpty">
       <div class="r-empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
       <div class="r-empty-t">Votre visuel apparaîtra ici.</div>
       <div class="r-empty-s">Uploadez une photo et cliquez Analyser.</div>
     </div>
-
-    <!-- Loading state -->
     <div class="r-loading" id="rLoading">
       <div class="rings"><div class="ring"></div><div class="ring"></div><div class="ring"></div></div>
-      <div class="r-loading-t">Flux Dev génère…</div>
-      <div class="r-loading-s">15 à 30 secondes</div>
+      <div class="r-loading-t" id="loadingTitle">Flux Dev génère…</div>
+      <div class="r-loading-s" id="loadingSubtitle">15 à 30 secondes</div>
       <div class="bar-wrap"><div class="bar-ind"></div></div>
     </div>
-
-    <!-- Result state -->
     <div class="r-img-wrap" id="rResult">
       <img id="resultImg" src="" alt="Visuel généré" class="r-img">
       <div class="r-footer">
         <div class="r-meta">
-          <strong>Flux Dev · fal.ai</strong>
+          <strong id="rMode">Flux Dev · img2img</strong>
           <span id="rFormat">Format 1:1 · JPEG</span>
         </div>
         <div class="r-actions">
@@ -303,76 +279,66 @@ h1 em{font-style:italic;color:var(--vert)}
         </div>
       </div>
     </div>
-
   </div>
+
 </div>
 
 <div class="footer">
   <span>© 2025 Capway Finance · Outil interne</span>
-  <span>Gemini 1.5 Flash + Flux Dev · fal.ai</span>
+  <span>Flux Dev · fal.ai</span>
 </div>
 
 <script>
-// ── État ─────────────────────────────────────────────────────
 let currentFile = null;
-let currentPrompt = '';
 let currentBase64 = '';
 
-// ── DOM refs ──────────────────────────────────────────────────
-const uploadZone   = document.getElementById('uploadZone');
-const fileInput    = document.getElementById('fileInput');
-const preview      = document.getElementById('preview');
-const previewImg   = document.getElementById('previewImg');
-const previewName  = document.getElementById('previewName');
-const removeBtn    = document.getElementById('removeBtn');
-const optLabel     = document.getElementById('optLabel');
-const styleSelect  = document.getElementById('styleSelect');
-const analyzeBtn   = document.getElementById('analyzeBtn');
-const analyzeBtnTxt= document.getElementById('analyzeBtnTxt');
-const analyzeSpin  = document.getElementById('analyzeSpin');
-const step1        = document.getElementById('step1');
-const step2        = document.getElementById('step2');
-const step3        = document.getElementById('step3');
-const stepErr      = document.getElementById('stepErr');
-const promptTa     = document.getElementById('promptTa');
-const ratioSelect  = document.getElementById('ratioSelect');
-const generateBtn  = document.getElementById('generateBtn');
-const generateBtnTxt=document.getElementById('generateBtnTxt');
+const uploadZone  = document.getElementById('uploadZone');
+const fileInput   = document.getElementById('fileInput');
+const preview     = document.getElementById('preview');
+const previewImg  = document.getElementById('previewImg');
+const previewName = document.getElementById('previewName');
+const removeBtn   = document.getElementById('removeBtn');
+const modeInfo    = document.getElementById('modeInfo');
+const noImageInfo = document.getElementById('noImageInfo');
+const styleSelect = document.getElementById('styleSelect');
+const analyzeBtn  = document.getElementById('analyzeBtn');
+const analyzeBtnTxt = document.getElementById('analyzeBtnTxt');
+const analyzeSpin = document.getElementById('analyzeSpin');
+const step1=document.getElementById('step1'), step2=document.getElementById('step2');
+const step3=document.getElementById('step3'), stepErr=document.getElementById('stepErr');
+const promptTa    = document.getElementById('promptTa');
+const ratioSelect = document.getElementById('ratioSelect');
+const generateBtn = document.getElementById('generateBtn');
+const generateBtnTxt = document.getElementById('generateBtnTxt');
 const generateSpin = document.getElementById('generateSpin');
-const warnBox      = document.getElementById('warnBox');
-const warnTxt      = document.getElementById('warnTxt');
-const errTxt       = document.getElementById('errTxt');
-const backBtn      = document.getElementById('backBtn');
-const resetBtn     = document.getElementById('resetBtn');
-const regenBtn     = document.getElementById('regenBtn');
-const errBackBtn   = document.getElementById('errBackBtn');
-const rEmpty       = document.getElementById('rEmpty');
-const rLoading     = document.getElementById('rLoading');
-const rResult      = document.getElementById('rResult');
-const resultImg    = document.getElementById('resultImg');
-const rFormat      = document.getElementById('rFormat');
-const dlBtn        = document.getElementById('dlBtn');
-const rRegenBtn    = document.getElementById('rRegenBtn');
+const warnBox=document.getElementById('warnBox'), warnTxt=document.getElementById('warnTxt');
+const errTxt=document.getElementById('errTxt');
+const backBtn=document.getElementById('backBtn'), resetBtn=document.getElementById('resetBtn');
+const regenBtn=document.getElementById('regenBtn'), errBackBtn=document.getElementById('errBackBtn');
+const rEmpty=document.getElementById('rEmpty'), rLoading=document.getElementById('rLoading');
+const rResult=document.getElementById('rResult'), resultImg=document.getElementById('resultImg');
+const rFormat=document.getElementById('rFormat'), rMode=document.getElementById('rMode');
+const dlBtn=document.getElementById('dlBtn'), rRegenBtn=document.getElementById('rRegenBtn');
+const loadingTitle=document.getElementById('loadingTitle');
+const loadingSubtitle=document.getElementById('loadingSubtitle');
 
-// ── Navigation entre étapes ────────────────────────────────────
-function showStep(name) {
-  step1.style.display   = name === 'step1'   ? '' : 'none';
-  step2.style.display   = name === 'step2'   ? '' : 'none';
-  step3.style.display   = name === 'step3'   ? '' : 'none';
-  stepErr.style.display = name === 'stepErr' ? '' : 'none';
+function showStep(n) {
+  step1.style.display=n==='step1'?'':'none';
+  step2.style.display=n==='step2'?'':'none';
+  step3.style.display=n==='step3'?'':'none';
+  stepErr.style.display=n==='stepErr'?'':'none';
 }
 
-function showResult(state) {
-  rEmpty.style.display   = state === 'empty'   ? 'block' : 'none';
-  rLoading.style.display = state === 'loading' ? 'block' : 'none';
-  rResult.style.display  = state === 'result'  ? 'block' : 'none';
+function showResult(s) {
+  rEmpty.style.display   = s==='empty'   ? 'block' : 'none';
+  rLoading.style.display = s==='loading' ? 'block' : 'none';
+  rResult.style.display  = s==='result'  ? 'block' : 'none';
 }
 
-// ── Upload ────────────────────────────────────────────────────
 function handleFile(file) {
   if (!file) return;
   if (!file.type.startsWith('image/')) { alert('Format non supporté.'); return; }
-  if (file.size > 10 * 1024 * 1024)   { alert('Fichier trop lourd (max 10 Mo).'); return; }
+  if (file.size > 10*1024*1024) { alert('Fichier trop lourd (max 10 Mo).'); return; }
   currentFile = file;
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -380,19 +346,16 @@ function handleFile(file) {
     previewName.textContent = file.name;
     uploadZone.style.display = 'none';
     preview.style.display = 'block';
-    optLabel.textContent = '✓ Photo prête — Gemini va analyser votre monture';
+    modeInfo.style.display = 'block';
+    noImageInfo.style.display = 'none';
   };
   reader.readAsDataURL(file);
 }
 
-fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
-uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('over'); });
+fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('over'); });
 uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('over'));
-uploadZone.addEventListener('drop', (e) => {
-  e.preventDefault();
-  uploadZone.classList.remove('over');
-  handleFile(e.dataTransfer.files[0]);
-});
+uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('over'); handleFile(e.dataTransfer.files[0]); });
 
 removeBtn.addEventListener('click', () => {
   currentFile = null;
@@ -400,10 +363,11 @@ removeBtn.addEventListener('click', () => {
   previewImg.src = '';
   preview.style.display = 'none';
   uploadZone.style.display = '';
-  optLabel.textContent = 'Sans photo, un prompt générique sera utilisé';
+  modeInfo.style.display = 'none';
+  noImageInfo.style.display = 'block';
 });
 
-// ── Analyser ──────────────────────────────────────────────────
+// Analyser
 analyzeBtn.addEventListener('click', async () => {
   analyzeBtn.disabled = true;
   analyzeBtnTxt.textContent = 'Analyse en cours…';
@@ -416,21 +380,18 @@ analyzeBtn.addEventListener('click', async () => {
 
     const res  = await fetch('/api/analyze', { method: 'POST', body: fd });
     const data = await res.json();
-
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
 
-    currentPrompt = data.prompt || '';
-    promptTa.value = currentPrompt;
+    promptTa.value = data.prompt || '';
 
     if (data.warning) {
       warnBox.style.display = 'flex';
-      warnTxt.textContent = 'Analyse approximative — ' + data.warning;
+      warnTxt.textContent = data.warning;
     } else {
       warnBox.style.display = 'none';
     }
 
     showStep('step2');
-
   } catch (err) {
     errTxt.textContent = err.message;
     showStep('stepErr');
@@ -441,7 +402,7 @@ analyzeBtn.addEventListener('click', async () => {
   }
 });
 
-// ── Générer ───────────────────────────────────────────────────
+// Générer — envoie l'image en multipart si disponible
 async function runGenerate() {
   const prompt = promptTa.value.trim();
   if (!prompt) { promptTa.focus(); return; }
@@ -449,24 +410,44 @@ async function runGenerate() {
   generateBtn.disabled = true;
   generateBtnTxt.textContent = 'Génération…';
   generateSpin.style.display = 'block';
+
+  if (currentFile) {
+    loadingTitle.textContent = 'Conservation de vos lunettes…';
+    loadingSubtitle.textContent = 'Mode image-to-image · 20-35 secondes';
+    rMode.textContent = 'Flux Dev · image-to-image';
+  } else {
+    loadingTitle.textContent = 'Flux Dev génère…';
+    loadingSubtitle.textContent = '15 à 30 secondes';
+    rMode.textContent = 'Flux Dev · génération texte';
+  }
+
   showResult('loading');
 
   try {
-    const res = await fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, ratio: ratioSelect.value }),
-    });
+    let res;
+
+    if (currentFile) {
+      // Multipart : envoie l'image + prompt + ratio
+      const fd = new FormData();
+      fd.append('prompt', prompt);
+      fd.append('ratio', ratioSelect.value);
+      fd.append('image', currentFile);
+      res = await fetch('/api/generate', { method: 'POST', body: fd });
+    } else {
+      // JSON simple : pas d'image
+      res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, ratio: ratioSelect.value }),
+      });
+    }
 
     const data = await res.json();
-
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-    if (!data.image) throw new Error("Aucune image reçue — vérifiez les logs Vercel.");
+    if (!data.image) throw new Error('Aucune image reçue — vérifiez les logs Vercel.');
 
-    // ── AFFICHAGE DE L'IMAGE ──────────────────────────────────
     currentBase64 = data.image;
-    const src = 'data:image/jpeg;base64,' + data.image;
-    resultImg.src = src;
+    resultImg.src = 'data:image/jpeg;base64,' + data.image;
     rFormat.textContent = 'Format ' + ratioSelect.value + ' · JPEG';
     showResult('result');
     showStep('step3');
@@ -484,9 +465,8 @@ async function runGenerate() {
 
 generateBtn.addEventListener('click', runGenerate);
 regenBtn.addEventListener('click', runGenerate);
-rRegenBtn.addEventListener('click', () => { showStep('step2'); runGenerate(); });
+rRegenBtn.addEventListener('click', () => { showStep('step2'); setTimeout(runGenerate, 100); });
 
-// ── Télécharger ───────────────────────────────────────────────
 dlBtn.addEventListener('click', () => {
   if (!currentBase64) return;
   const a = document.createElement('a');
@@ -495,12 +475,10 @@ dlBtn.addEventListener('click', () => {
   a.click();
 });
 
-// ── Navigation retour ─────────────────────────────────────────
 backBtn.addEventListener('click',    () => { showStep('step1'); showResult('empty'); });
-resetBtn.addEventListener('click',   () => { showStep('step1'); showResult('empty'); currentFile=null; });
+resetBtn.addEventListener('click',   () => { showStep('step1'); showResult('empty'); });
 errBackBtn.addEventListener('click', () => { showStep('step1'); showResult('empty'); });
 
-// Init
 showStep('step1');
 showResult('empty');
 </script>
