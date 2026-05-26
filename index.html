@@ -431,6 +431,7 @@ async function runGenerate() {
       const fd = new FormData();
       fd.append('prompt', prompt);
       fd.append('ratio', ratioSelect.value);
+      fd.append('style', styleSelect.value);
       fd.append('image', currentFile);
       res = await fetch('/api/generate', { method: 'POST', body: fd });
     } else {
