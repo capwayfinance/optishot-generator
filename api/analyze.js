@@ -105,7 +105,7 @@ Rules:
         'X-Title':      'OptiShot Generateur',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-preview',
+        model: 'google/gemini-flash-1.5',
         messages: [{
           role: 'user',
           content: [
