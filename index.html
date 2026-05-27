@@ -496,7 +496,7 @@ aBtn.addEventListener('click', async () => {
     if (data.warning) { wbox.style.display='flex'; wtxt.textContent=data.warning; }
     else wbox.style.display='none';
 
-    buildSuggestions(data.prompts||[]);
+    buildSuggestions(data.suggestions || data.prompts || []);
     freePrompt.value=''; selPrompt='';
     showLeft('s2');
     showRight('empty');
@@ -508,16 +508,22 @@ aBtn.addEventListener('click', async () => {
   }
 });
 
-function buildSuggestions(prompts) {
+function buildSuggestions(suggestions) {
   plist.innerHTML='';
   ['Suggestion A','Suggestion B','Suggestion C'].forEach((lbl,i) => {
-    if (!prompts[i]) return;
+    if (!suggestions[i]) return;
+    const s = suggestions[i];
+    // Affiche le français, stocke l'anglais pour la génération
+    const displayText = s.fr || s; // compatibilité si string
+    const promptEn    = s.en || s;
     const d = document.createElement('div');
     d.className = 'popt';
-    d.innerHTML = `<span class="popt-tag">${lbl}</span><span class="popt-txt">${prompts[i]}</span><div class="pchk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+    d.innerHTML = `<span class="popt-tag">${lbl}</span><span class="popt-txt">${displayText}</span><div class="pchk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>`;
     d.onclick = () => {
       document.querySelectorAll('.popt').forEach(x=>x.classList.remove('sel'));
-      d.classList.add('sel'); selPrompt=prompts[i]; freePrompt.value='';
+      d.classList.add('sel');
+      selPrompt = promptEn; // envoie l'anglais à Flux
+      freePrompt.value='';
     };
     plist.appendChild(d);
   });
