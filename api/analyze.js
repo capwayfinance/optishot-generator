@@ -1,12 +1,4 @@
-// analyze.js v3 — multi-photos + 3 suggestions de prompts
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-
-const STYLE_CONTEXT = {
-  studio: 'professional white studio background, even soft-box lighting, clean product shot',
-  nature: 'warm golden hour sunlight, natural stone surface, green botanical bokeh background',
-  luxe:   'dark polished marble, dramatic side lighting, luxury editorial black background',
-  urbain: 'matte concrete surface, cool moody city light, minimalist urban background',
-};
 
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
@@ -21,7 +13,7 @@ function indexOf(buf, search, offset = 0) {
   for (let i = offset; i <= buf.length - search.length; i++) {
     let ok = true;
     for (let j = 0; j < search.length; j++) {
-      if (buf[i+j] !== search[j]) { ok = false; break; }
+      if (buf[i+j] !== search[j]) { ok=false; break; }
     }
     if (ok) return i;
   }
@@ -30,14 +22,13 @@ function indexOf(buf, search, offset = 0) {
 
 function parseMultipart(buffer, boundary) {
   const sep = Buffer.from('--' + boundary);
-  const results = [];   // tableau pour accepter plusieurs "image"
-  const fields = {};
+  const images = [], fields = {};
   let start = 0, pos;
   const parts = [];
   while ((pos = indexOf(buffer, sep, start)) !== -1) {
     parts.push(buffer.slice(start, pos));
     start = pos + sep.length;
-    if (buffer[start] === 13 && buffer[start+1] === 10) start += 2;
+    if (buffer[start]===13 && buffer[start+1]===10) start += 2;
   }
   parts.push(buffer.slice(start));
   for (const part of parts.filter(p => p.length > 4)) {
@@ -45,19 +36,43 @@ function parseMultipart(buffer, boundary) {
     if (idx === -1) continue;
     const headers = part.slice(0, idx).toString('utf8');
     let body = part.slice(idx + 4);
-    if (body.slice(-2).equals(Buffer.from('\r\n'))) body = body.slice(0, -2);
+    if (body.slice(-2).equals(Buffer.from('\r\n'))) body = body.slice(0,-2);
     const nameMatch = headers.match(/name="([^"]+)"/i);
     if (!nameMatch) continue;
     const name = nameMatch[1];
     const filenameMatch = headers.match(/filename="([^"]+)"/i);
     const ctMatch = headers.match(/Content-Type:\s*([^\r\n]+)/i);
     if (filenameMatch) {
-      results.push({ field: name, data: body, mime: ctMatch ? ctMatch[1].trim() : 'image/jpeg' });
+      images.push({ data: body, mime: ctMatch ? ctMatch[1].trim() : 'image/jpeg' });
     } else {
       fields[name] = body.toString('utf8');
     }
   }
-  return { images: results.filter(r => r.field === 'images[]' || r.field === 'image'), fields };
+  return { images, fields };
+}
+
+// Univers créatifs pour forcer la diversité
+const UNIVERSES = [
+  'minimalist Japanese zen garden, raked white sand, single stone, morning mist, extreme close-up',
+  'brutalist concrete architecture, harsh industrial light, raw texture, geometric shadows',
+  'luxury Parisian perfume counter, velvet surface, warm amber light, editorial close-up',
+  'Scandinavian winter light, frosted glass surface, pale grey background, ultra clean',
+  'old Italian marble table, warm afternoon sun, Mediterranean atmosphere, artisan quality',
+  'dark volcanic black sand, dramatic ocean light, moody atmospheric, editorial fashion',
+  'golden wheat field at magic hour, soft bokeh, warm harvest light, organic luxury',
+  'stealth black matte surface, dark studio, single overhead spotlight, dramatic shadow',
+  'translucent acrylic floating, electric blue backlight, futuristic tech editorial',
+  'antique oak wood desk, candle warm light, literary study atmosphere, heritage luxury',
+  'rain-wet urban sidewalk, city neon reflections, night photography, moody street style',
+  'white marble quarry, natural stone texture, pale sunlight, architectural minimalism',
+  'tropical palm leaf shadow, warm golden sun filter, resort luxury, lifestyle editorial',
+  'industrial copper pipes, warehouse light, New York loft atmosphere, urban premium',
+  'frozen ice crystal surface, cold blue light, Nordic editorial, hyper detailed',
+];
+
+function pickRandom(arr, count) {
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
 }
 
 module.exports = async (req, res) => {
@@ -68,52 +83,61 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const rawBody = await getRawBody(req);
-    const ct = req.headers['content-type'] || '';
+    const rawBody  = await getRawBody(req);
+    const ct       = req.headers['content-type'] || '';
     const boundary = ct.split('boundary=')[1]?.split(';')[0]?.trim();
     if (!boundary) return res.status(400).json({ error: 'Multipart manquant.' });
 
     const { images, fields } = parseMultipart(rawBody, boundary);
-    const style = fields.style || 'studio';
-    const ctx   = STYLE_CONTEXT[style] || STYLE_CONTEXT.studio;
 
-    const fallbackPrompts = [
-      `Luxury eyeglasses isolated on ${ctx}, tack sharp focus on frames, photorealistic, 8k`,
-      `Eyeglasses product shot, ${ctx}, dramatic lighting, ultra detailed, commercial photography`,
-      `Premium glasses, ${ctx}, shallow depth of field, high-end editorial style, 8k`,
-    ];
+    // Choisir 3 univers aléatoires différents à chaque appel
+    const pickedUniverses = pickRandom(UNIVERSES, 3);
+
+    const fallbackPrompts = pickedUniverses.map(u =>
+      `Luxury eyeglasses isolated, ${u}, tack sharp focus on frames, no hands, no people, photorealistic, 8k`
+    );
 
     if (!images.length) return res.status(200).json({ prompts: fallbackPrompts });
 
     const apiKey = process.env.OPENROUTER_KEY;
     if (!apiKey) return res.status(200).json({ prompts: fallbackPrompts, warning: 'OPENROUTER_KEY manquante.' });
 
-    // Construire les parties image pour Gemini (max 4 photos)
     const imageParts = images.slice(0, 4).map(img => ({
       type: 'image_url',
       image_url: { url: `data:${img.mime};base64,${img.data.toString('base64')}` },
     }));
 
-    const instruction = `You are a luxury eyewear product photographer and Flux AI prompt engineer.
-You receive ${imageParts.length} photo(s) of the same eyeglass frame taken by an optician with their phone. Hands may be visible — ignore them and focus only on the glasses.
+    const instruction = `You are a world-class luxury eyewear photographer and creative director.
 
-Analyze: frame shape, rim color, material (acetate/metal/titanium), lens tint, any distinctive details.
+Analyze the glasses in the photo(s). There may be hands — ignore them completely.
 
-Generate exactly 3 different Flux Dev image generation prompts. Each prompt = different mood/style.
-Photography setting for all: ${ctx}
+Identify precisely:
+- Frame shape (round/oval/square/rectangular/cat-eye/aviator/browline)
+- Color (be very specific: tortoiseshell amber-brown, matte black, transparent crystal, rose gold metal...)
+- Material (acetate / metal / titanium)
+- Lens (clear / tinted / mirrored / gradient)
 
-Format your response as JSON only, no other text:
+Then write 3 Flux Dev image generation prompts. Each prompt MUST use a completely different visual universe from the list below. Each one should feel like a totally different photo shoot.
+
+Universe for prompt 1: ${pickedUniverses[0]}
+Universe for prompt 2: ${pickedUniverses[1]}
+Universe for prompt 3: ${pickedUniverses[2]}
+
+Rules for each prompt:
+- Start with the exact glasses description
+- Add the universe/setting
+- Add specific lighting and atmosphere
+- End with: "isolated product, no hands, no people, photorealistic, 8k"
+- Max 70 words
+- Must feel COMPLETELY DIFFERENT from the others
+
+Also write a short frame description IN FRENCH (1 sentence max).
+
+Return ONLY valid JSON:
 {
-  "frame_description": "brief description of the glasses in French",
-  "prompts": [
-    "prompt 1 in English, under 60 words",
-    "prompt 2 in English, under 60 words",
-    "prompt 3 in English, under 60 words"
-  ]
-}
-
-Each prompt must describe the EXACT frame (shape, color, material) + the photography setting + lighting + surface + depth of field.
-NO hands. NO people. Product photography only.`;
+  "frame_description": "Montures rondes en acétate écaille de tortue...",
+  "prompts": ["prompt 1", "prompt 2", "prompt 3"]
+}`;
 
     const orRes = await fetch(OPENROUTER_URL, {
       method: 'POST',
@@ -121,19 +145,16 @@ NO hands. NO people. Product photography only.`;
         Authorization:  `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://optishot-generator.vercel.app',
-        'X-Title':      'OptiShot Generateur',
+        'X-Title':      'OptiShot',
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash-lite',
         messages: [{
           role: 'user',
-          content: [
-            ...imageParts,
-            { type: 'text', text: instruction },
-          ],
+          content: [...imageParts, { type: 'text', text: instruction }],
         }],
-        max_tokens:  600,
-        temperature: 0.4,
+        max_tokens:  900,
+        temperature: 0.9,
       }),
     });
 
@@ -146,15 +167,13 @@ NO hands. NO people. Product photography only.`;
     const content = data.choices?.[0]?.message?.content?.trim();
     if (!content) throw new Error('Réponse Gemini vide.');
 
-    // Parser le JSON retourné par Gemini
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('Format JSON invalide.');
-    const parsed = JSON.parse(jsonMatch[0]);
+    if (!jsonMatch) throw new Error('JSON invalide.');
+    const parsed  = JSON.parse(jsonMatch[0]);
+    const prompts = (parsed.prompts || []).slice(0, 3);
+    if (!prompts.length) throw new Error('Aucun prompt.');
 
-    const prompts = parsed.prompts?.slice(0, 3);
-    if (!prompts?.length) throw new Error('Aucun prompt généré.');
-
-    console.log('[analyze] OK —', parsed.frame_description);
+    console.log('[analyze] OK:', parsed.frame_description);
     return res.status(200).json({
       prompts,
       frame_description: parsed.frame_description || '',
@@ -162,13 +181,11 @@ NO hands. NO people. Product photography only.`;
 
   } catch (err) {
     console.error('[analyze] error:', err.message);
-    const ctx = STYLE_CONTEXT.studio;
+    const pickedUniverses = pickRandom(UNIVERSES, 3);
     return res.status(200).json({
-      prompts: [
-        `Luxury eyeglasses on ${ctx}, tack sharp focus, photorealistic, 8k`,
-        `Premium glasses product shot, ${ctx}, dramatic lighting, commercial photography`,
-        `Eyeglasses editorial, ${ctx}, shallow depth of field, high-end style`,
-      ],
+      prompts: pickedUniverses.map(u =>
+        `Luxury eyeglasses, ${u}, tack sharp focus, no hands, no people, photorealistic, 8k`
+      ),
       warning: err.message,
     });
   }
