@@ -51,23 +51,67 @@ function parseMultipart(buffer, boundary) {
   return { images, fields };
 }
 
-// Univers créatifs pour forcer la diversité
+// 20 univers cinématiques haute couture — vocabulaire commercial luxury
 const UNIVERSES = [
-  'minimalist Japanese zen garden, raked white sand, single stone, morning mist, extreme close-up',
-  'brutalist concrete architecture, harsh industrial light, raw texture, geometric shadows',
-  'luxury Parisian perfume counter, velvet surface, warm amber light, editorial close-up',
-  'Scandinavian winter light, frosted glass surface, pale grey background, ultra clean',
-  'old Italian marble table, warm afternoon sun, Mediterranean atmosphere, artisan quality',
-  'dark volcanic black sand, dramatic ocean light, moody atmospheric, editorial fashion',
-  'golden wheat field at magic hour, soft bokeh, warm harvest light, organic luxury',
-  'stealth black matte surface, dark studio, single overhead spotlight, dramatic shadow',
-  'translucent acrylic floating, electric blue backlight, futuristic tech editorial',
-  'antique oak wood desk, candle warm light, literary study atmosphere, heritage luxury',
-  'rain-wet urban sidewalk, city neon reflections, night photography, moody street style',
-  'white marble quarry, natural stone texture, pale sunlight, architectural minimalism',
-  'tropical palm leaf shadow, warm golden sun filter, resort luxury, lifestyle editorial',
-  'industrial copper pipes, warehouse light, New York loft atmosphere, urban premium',
-  'frozen ice crystal surface, cold blue light, Nordic editorial, hyper detailed',
+  // Studio premium
+  'placed on a pure white Carrara marble slab, lit by a single large softbox creating a razor-thin shadow, clinical luxury product photography, white infinity backdrop, ambient light filling every surface detail',
+
+  // Paris / Editorial
+  'elegantly resting on a weathered Haussmann limestone balcony railing, soft golden-hour bokeh revealing the Eiffel Tower at sunset in the far background, warm Parisian amber light, natural reflections on the lenses, high-end fashion editorial',
+
+  // Sombre / Luxe dramatique
+  'on a polished absolute black granite surface, single dramatic overhead spotlight creating a perfectly shaped reflection beneath the frames, deep black infinity background, luxury watch advertisement style, razor-sharp details',
+
+  // Nature japonaise
+  'placed on a smooth grey river stone surrounded by raked white Zen garden sand, delicate early morning mist, soft diffused Japanese light, serene and minimal, luxury lifestyle editorial, ultra-shallow depth of field',
+
+  // Méditerranée
+  'resting on sun-bleached white travertine stone, warm Mediterranean afternoon light, blurred turquoise sea bokeh in the background, Positano cliffside luxury hotel atmosphere, natural reflections shimmering on lenses',
+
+  // Urbain nocturne
+  'on rain-wet black asphalt in an empty Paris street at night, bokeh of warm amber streetlights and blurred neon reflections, moody cinematic atmosphere, editorial fashion photography, dramatic shadows',
+
+  // Nordique glacier
+  'on translucent ancient blue ice, cold crisp Arctic light, extreme clarity and precision, micro ice crystal textures visible, clean white sky, luxury Scandinavian editorial, hyper-detailed',
+
+  // Bois et cuir
+  'on a hand-stitched full-grain saddle leather surface, warm directional studio light revealing every texture and grain, rich chestnut tones, artisan heritage luxury, close-up product editorial',
+
+  // Palais / Baroque
+  'on aged gilded gold leaf baroque picture frame moulding, warm soft candlelight, Louvre Museum atmosphere, Renaissance luxury aesthetic, painterly bokeh of ornate architecture, deep warm shadows',
+
+  // High-tech futuriste
+  'floating on a transparent acrylic shelf above a softly glowing electric blue LED panel, sleek futuristic tech-luxury product editorial, cool blue-white tones, sharp reflections, Apple-launch-event aesthetic',
+
+  // Désert minéral
+  'on smooth terracotta-colored desert sandstone, dramatic raking side light revealing micro surface textures, deep Moroccan blue sky in background, raw mineral luxury, National Geographic editorial quality',
+
+  // Loft new-yorkais
+  'on weathered reclaimed oak flooring, New York loft atmosphere, large industrial steel window casting dramatic grid shadows, warm morning sunlight from the side, Brooklyn art studio editorial',
+
+  // Floral japonais
+  'surrounded by fresh-cut magnolia blossoms on pale grey Japanese washi paper, soft diffused window light, delicate pink and white petals slightly out of focus, luxury cosmetics campaign aesthetic, ultra-clean',
+
+  // Velours de nuit
+  'on deep forest-green velvet fabric, a single focused narrow-beam spotlight illuminating the frames from above-left, jewellery-boutique display aesthetic, rich shadow gradients, Hermès flagship store atmosphere',
+
+  // Côte Amalfitaine
+  'on a glazed handmade Italian ceramic tile in cobalt and white, warm Capri sunlight, blurred lemon grove and blue Mediterranean sea bokeh in background, artisan Italian luxury, summer editorial',
+
+  // Studio cinéma
+  'on a dark walnut director clapperboard surface, warm tungsten film studio lights, Cinema Paradiso atmosphere, golden tones, bokeh of soft studio equipment, timeless cinematic luxury editorial',
+
+  // Montagne cristal
+  'on frost-covered dark schist mountain rock, pure Alpine air light, Mont Blanc glacier blurred in the background, crisp cold shadows, outdoor luxury brand campaign, ultra-sharp frame details',
+
+  // Concept store
+  'on a minimalist poured concrete shelf in a Marais Paris concept store, diffused north-facing window light, architectural shadows, clean Brutalist-chic aesthetic, Merci or Centre Pompidou editorial',
+
+  // Nuit étoilée
+  'on polished obsidian stone under a clear night sky, long-exposure stars softly visible above, moonlight as the only light source, ethereal and dreamlike, luxury watch brand campaign atmosphere',
+
+  // Bain de lumière
+  'backlit by a single window with sheer white linen curtains, morning light diffused to pure luminous white, frame silhouette crisp and glowing, ultra-minimal Scandinavian interior, peaceful luxury editorial',
 ];
 
 function pickRandom(arr, count) {
@@ -107,30 +151,45 @@ module.exports = async (req, res) => {
       image_url: { url: `data:${img.mime};base64,${img.data.toString('base64')}` },
     }));
 
-    const instruction = `You are an expert luxury eyewear product photographer and Flux AI prompt engineer.
+    const instruction = `You are a world-class luxury eyewear art director and Flux AI image prompt engineer. Your prompts have been used in campaigns for Oliver Peoples, Cartier, and Lindberg.
 
-Analyze the glasses in the photo(s). Ignore any hands visible.
+You receive ${imageParts.length} photo(s) of eyeglass frames. There may be hands visible — ignore them entirely. Focus only on the glasses.
 
-Identify precisely: frame shape, color (be very specific), material (acetate/metal/titanium), lens type.
+STEP 1 — Analyze the frames with extreme precision:
+- Frame shape: round / oval / square / rectangular / cat-eye / aviator / browline / geometric
+- Frame color: be hyper-specific (e.g. "deep translucent tortoiseshell with amber-honey and dark brown swirls", "brushed rose-gold titanium", "matte jet-black acetate")
+- Frame material: acetate / metal / titanium / mixed / TR-90
+- Lens: clear / lightly tinted (what color?) / mirrored / gradient / photochromic
+- Lens shape: describe precisely
+- Temple and bridge details: any distinctive features
+- Overall style personality: minimalist / bold / retro / sporty / avant-garde / classic luxury
 
-Create 3 visual concepts using completely different universes:
+STEP 2 — Write 3 Flux Dev image generation prompts in English.
+Each prompt must use a completely different visual universe:
+
 Universe 1: ${pickedUniverses[0]}
+
 Universe 2: ${pickedUniverses[1]}
+
 Universe 3: ${pickedUniverses[2]}
 
-For each concept:
-- "fr": a short French label (6 words max) describing the mood for the user
-- "en": a Flux Dev English prompt (under 70 words) with exact frame description + universe + lighting + surface + "no hands, no people, photorealistic, 8k"
+Each English prompt MUST:
+1. Open with: "High-end luxury commercial product photography of [exact frame description from Step 1],"
+2. Describe the exact scene from the universe above
+3. Include: specific light source and quality, surface material and texture, depth of field treatment
+4. End with: "lenses treated as semi-transparent with natural reflections, no hands, no people, isolated eyewear product, photorealistic, 8K resolution, commercial advertisement quality"
+5. Be between 60-90 words
+6. Sound like a brief from a luxury creative director to a photographer
 
-Also: "frame_description" in French (1 sentence).
+STEP 3 — Write a "frame_description" IN FRENCH, 1 sentence, poetic and precise (like a luxury boutique product description).
 
-Return ONLY valid JSON, no markdown:
+Return ONLY valid JSON, no markdown backticks, no explanation:
 {
-  "frame_description": "Montures rondes en acétate écaille...",
+  "frame_description": "Montures rondes en acétate écaille de tortue aux reflets miel et brun profond...",
   "suggestions": [
-    {"fr": "Studio blanc, lumière douce", "en": "Round tortoiseshell frames..."},
-    {"fr": "Marbre noir, ambiance luxe", "en": "Round tortoiseshell frames..."},
-    {"fr": "Pierre naturelle, lumière dorée", "en": "Round tortoiseshell frames..."}
+    {"fr": "Marbre blanc, lumière rasante", "en": "High-end luxury commercial product photography of [frames]..."},
+    {"fr": "Balcon parisien, coucher de soleil", "en": "High-end luxury commercial product photography of [frames]..."},
+    {"fr": "Granit noir, spotlight dramatique", "en": "High-end luxury commercial product photography of [frames]..."}
   ]
 }`;
 
@@ -143,13 +202,13 @@ Return ONLY valid JSON, no markdown:
         'X-Title':      'OptiShot',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-lite',
+        model: 'google/gemini-2.5-flash',
         messages: [{
           role: 'user',
           content: [...imageParts, { type: 'text', text: instruction }],
         }],
-        max_tokens:  900,
-        temperature: 0.9,
+        max_tokens:  1200,
+        temperature: 0.85,
       }),
     });
 
