@@ -47,15 +47,13 @@ body::before{content:'';display:block;height:2px;background:linear-gradient(90de
 .hdr-tag{font-size:10px;font-weight:600;color:var(--or);background:var(--or-10);border:1px solid var(--or-20);padding:3px 10px;letter-spacing:.1em;text-transform:uppercase;border-radius:100px;flex-shrink:0}
 
 /* ══ HERO ════════════════════════════════════════ */
-.hero{padding:52px 40px 44px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end;border-bottom:1px solid var(--c08)}
-.hero-text{}
+.hero{padding:72px 40px 56px;max-width:1100px;margin:0 auto;text-align:center;border-bottom:1px solid var(--c08);position:relative;overflow:hidden}
+.hero-glasses{position:absolute;top:50%;right:3%;transform:translateY(-50%);width:44%;max-width:520px;opacity:.11;pointer-events:none}
+.hero-cta{display:inline-block;margin-top:32px;background:var(--or);color:var(--noir);font-family:var(--fb);font-size:15px;font-weight:700;padding:16px 40px;border-radius:100px;text-decoration:none;letter-spacing:.04em;transition:background .2s,transform .15s,box-shadow .2s;box-shadow:0 4px 24px rgba(201,168,76,.28)}
+.hero-cta:hover{background:var(--or-l);transform:translateY(-2px);box-shadow:0 8px 32px rgba(201,168,76,.4)}
+.hero-text{position:relative;z-index:1;max-width:600px;margin:0 auto}
+.hero-stats{display:flex;gap:32px;justify-content:center;margin-top:40px;padding-top:32px;border-top:1px solid var(--c08);position:relative;z-index:1;opacity:0;animation:fadeUp .8s ease .5s forwards}
 .hero-eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:10px;font-weight:600;color:var(--or);letter-spacing:.18em;text-transform:uppercase;margin-bottom:20px;opacity:0;animation:fadeUp .7s ease .1s forwards}
-.hero-eyebrow::before{content:'';width:20px;height:1px;background:var(--or);opacity:.7}
-.hero-h1{font-family:var(--ft);font-size:clamp(2.6rem,5vw,4.8rem);font-weight:400;line-height:1.02;margin-bottom:14px;opacity:0;animation:fadeUp .8s ease .2s forwards}
-.hero-h1 span{display:block;color:var(--creme)}
-.hero-h1 em{display:block;font-style:italic;color:var(--or)}
-.hero-sub{font-size:15px;font-weight:300;color:var(--c50);max-width:480px;line-height:1.7;opacity:0;animation:fadeUp .8s ease .3s forwards}
-.hero-stats{display:flex;gap:32px;opacity:0;animation:fadeUp .8s ease .4s forwards}
 .stat{text-align:center}
 .stat-n{font-family:var(--ft);font-size:2rem;color:var(--or);display:block;line-height:1}
 .stat-l{font-size:10px;font-weight:400;color:var(--c30);letter-spacing:.08em;margin-top:4px;display:block}
@@ -206,12 +204,13 @@ body::before{content:'';display:block;height:2px;background:linear-gradient(90de
 /* ══ RESPONSIVE ══════════════════════════════════ */
 @media(max-width:900px){
   .hdr{padding:0 20px}
-  .hero{padding:36px 20px 32px;grid-template-columns:1fr;gap:28px}
-  .hero-stats{justify-content:flex-start}
+  .hero{padding:48px 20px 40px}
+  .hero-glasses{width:70%;right:-5%;opacity:.08}
   .layout{grid-template-columns:1fr;padding:24px 16px 60px;gap:20px}
   .result-panel{position:static}
   .footer{padding:20px;flex-direction:column;gap:8px;text-align:center}
-  .hero-h1{font-size:clamp(2.2rem,9vw,3.2rem)}
+  .hero-h1{font-size:clamp(2.4rem,9vw,3.2rem)}
+  .hero-stats{gap:20px}
 }
 </style>
 </head>
@@ -230,36 +229,38 @@ body::before{content:'';display:block;height:2px;background:linear-gradient(90de
 
 <!-- HERO -->
 <div class="hero">
+  <!-- Silhouette lunettes fond -->
+  <svg class="hero-glasses" viewBox="0 0 620 210" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="155" cy="105" rx="138" ry="88" stroke="#C9A84C" stroke-width="3.5" fill="none"/>
+    <ellipse cx="465" cy="105" rx="138" ry="88" stroke="#C9A84C" stroke-width="3.5" fill="none"/>
+    <path d="M293 105 Q310 98 327 105" stroke="#C9A84C" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <line x1="17" y1="82" x2="0" y2="75" stroke="#C9A84C" stroke-width="3" stroke-linecap="round"/>
+    <line x1="603" y1="82" x2="620" y2="75" stroke="#C9A84C" stroke-width="3" stroke-linecap="round"/>
+    <!-- Inner lens details -->
+    <ellipse cx="155" cy="105" rx="100" ry="62" stroke="#C9A84C" stroke-width="1" fill="none" opacity=".4"/>
+    <ellipse cx="465" cy="105" rx="100" ry="62" stroke="#C9A84C" stroke-width="1" fill="none" opacity=".4"/>
+  </svg>
+
   <div class="hero-text">
     <div class="hero-eyebrow">Générateur de visuels IA · Pour opticiens</div>
     <h1 class="hero-h1">
       <span>Votre monture.</span>
       <em>En 30 secondes.</em>
     </h1>
-    <p class="hero-sub">L'IA analyse vos lunettes et génère des visuels niveau studio. Directement depuis votre téléphone. Sans photographe, sans agence.</p>
+    <p class="hero-sub">L'IA génère des visuels niveau studio directement depuis votre téléphone. Sans photographe. Sans agence.</p>
+    <a href="#tool" class="hero-cta">Commencer →</a>
   </div>
+
   <div class="hero-stats">
-    <div class="stat">
-      <span class="stat-n">30s</span>
-      <span class="stat-l">par visuel</span>
-    </div>
-    <div class="stat">
-      <span class="stat-n">4</span>
-      <span class="stat-l">formats</span>
-    </div>
-    <div class="stat">
-      <span class="stat-n">0€</span>
-      <span class="stat-l">agence</span>
-    </div>
-    <div class="stat">
-      <span class="stat-n">−87%</span>
-      <span class="stat-l">vs shooting</span>
-    </div>
+    <div class="stat"><span class="stat-n">30s</span><span class="stat-l">par visuel</span></div>
+    <div class="stat"><span class="stat-n">4</span><span class="stat-l">formats</span></div>
+    <div class="stat"><span class="stat-n">0€</span><span class="stat-l">agence</span></div>
+    <div class="stat"><span class="stat-n">−87%</span><span class="stat-l">vs shooting</span></div>
   </div>
 </div>
 
 <!-- LAYOUT 2 COLONNES -->
-<div class="layout">
+<div class="layout" id="tool">
 
   <!-- GAUCHE — Contrôles -->
   <div style="display:flex;flex-direction:column;gap:16px">
