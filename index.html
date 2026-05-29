@@ -223,6 +223,24 @@ body::before{content:'';display:block;height:2px;background:linear-gradient(90de
 /* ══ SPINNER ═════════════════════════════════════ */
 .spin{width:15px;height:15px;border:2px solid rgba(11,21,16,.25);border-top-color:#0B1510;border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0}
 
+
+/* ══ BEFORE/AFTER SLIDER ════════════════════════ */
+.ba-wrap{position:relative;overflow:hidden;cursor:ew-resize;user-select:none;-webkit-user-select:none;display:none}
+.ba-after{width:100%;display:block}
+.ba-before{position:absolute;top:0;left:0;height:100%;overflow:hidden;width:50%}
+.ba-before img{width:100%;height:100%;object-fit:cover;display:block}
+.ba-before-label,.ba-after-label{position:absolute;bottom:12px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:100px;pointer-events:none}
+.ba-before-label{left:10px;background:rgba(17,17,16,.65);color:#FAF7F0}
+.ba-after-label{right:10px;background:var(--or);color:var(--noir)}
+.ba-divider{position:absolute;top:0;left:50%;width:2px;height:100%;background:var(--or);transform:translateX(-50%);pointer-events:none}
+.ba-handle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:36px;height:36px;border-radius:50%;background:var(--or);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.4);pointer-events:none;gap:3px}
+.ba-handle-ico{width:0;height:0;border-style:solid}
+.ba-handle-l{border-width:5px 6px 5px 0;border-color:transparent var(--noir) transparent transparent}
+.ba-handle-r{border-width:5px 0 5px 6px;border-color:transparent transparent transparent var(--noir)}
+.ba-tab{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--c08);font-size:11px;font-weight:500;color:var(--c50)}
+.ba-tab-btn{padding:4px 12px;border-radius:100px;border:1px solid var(--c15);background:transparent;font-family:var(--fb);font-size:11px;font-weight:500;color:var(--c50);cursor:pointer;transition:all .15s}
+.ba-tab-btn.active{background:var(--or);border-color:var(--or);color:var(--noir)}
+
 /* ══ FOOTER ══════════════════════════════════════ */
 .footer{border-top:1px solid var(--c08);padding:22px 40px;display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto}
 .footer span{font-size:11.5px;font-weight:300;color:var(--c30)}
@@ -403,7 +421,31 @@ body::before{content:'';display:block;height:2px;background:linear-gradient(90de
         <div class="si2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
         <div class="pt" style="font-size:14px">Visuel généré ✓</div>
       </div>
+
+      <!-- Tabs Résultat / Avant-Après -->
+      <div class="ba-tab" id="baTabs" style="display:none">
+        <button class="ba-tab-btn" id="tabResult" onclick="showTab('result')">Résultat</button>
+        <button class="ba-tab-btn active" id="tabBA" onclick="showTab('ba')">Avant / Après</button>
+      </div>
+
+      <!-- Vue résultat simple -->
       <div id="riw" style="display:none"><img id="rimg" src="" alt="Visuel généré"></div>
+
+      <!-- Vue avant/après slider -->
+      <div class="ba-wrap" id="baWrap">
+        <img id="baAfter" class="ba-after" src="" alt="Après — visuel généré">
+        <div class="ba-before" id="baBefore">
+          <img id="baBefore-img" src="" alt="Avant — photo originale">
+          <div class="ba-before-label">Avant</div>
+        </div>
+        <div class="ba-after-label">Après</div>
+        <div class="ba-divider" id="baDivider"></div>
+        <div class="ba-handle" id="baHandle">
+          <div class="ba-handle-ico ba-handle-l"></div>
+          <div class="ba-handle-ico ba-handle-r"></div>
+        </div>
+      </div>
+
       <div class="r-footer">
         <div class="r-meta">
           <strong>Flux Dev · fal.ai</strong>
@@ -615,10 +657,12 @@ async function runGen() {
     if (!res.ok) throw new Error(data.error||`HTTP ${res.status}`);
     if (!data.image) throw new Error('Aucune image reçue.');
     curB64 = data.image;
-    rimg.src = 'data:image/jpeg;base64,'+data.image;
-    riw.style.display='block';
+    const generatedDataUrl = 'data:image/jpeg;base64,'+data.image;
+    rimg.src = generatedDataUrl;
+    riw.style.display='none';
     rFormat.textContent = 'Format '+selRatio+' · JPEG HD';
     showRight('result');
+    setupBeforeAfter(generatedDataUrl);
   } catch(err) {
     document.getElementById('etxt').textContent=err.message;
     showLeft('ec'); showRight('empty');
@@ -658,6 +702,76 @@ function toggleMode() {
     document.getElementById('modeTxt').textContent  = 'Mode sombre';
   }
 })();
+
+
+// ── BEFORE/AFTER SLIDER ──────────────────────────────────────
+let originalSrc = '';
+
+function showTab(tab) {
+  const riw    = document.getElementById('riw');
+  const baWrap = document.getElementById('baWrap');
+  const tR     = document.getElementById('tabResult');
+  const tB     = document.getElementById('tabBA');
+  if (tab === 'result') {
+    riw.style.display    = 'block';
+    baWrap.style.display = 'none';
+    tR.classList.add('active'); tB.classList.remove('active');
+  } else {
+    riw.style.display    = 'none';
+    baWrap.style.display = 'block';
+    tR.classList.remove('active'); tB.classList.add('active');
+  }
+}
+
+function initSlider() {
+  const wrap   = document.getElementById('baWrap');
+  const before = document.getElementById('baBefore');
+  const div    = document.getElementById('baDivider');
+  const handle = document.getElementById('baHandle');
+  let dragging = false;
+
+  function setPos(x) {
+    const rect = wrap.getBoundingClientRect();
+    let pct = Math.min(Math.max((x - rect.left) / rect.width * 100, 2), 98);
+    before.style.width   = pct + '%';
+    div.style.left       = pct + '%';
+    handle.style.left    = pct + '%';
+  }
+
+  wrap.addEventListener('mousedown',  e => { dragging = true; setPos(e.clientX); });
+  wrap.addEventListener('touchstart', e => { dragging = true; setPos(e.touches[0].clientX); }, {passive:true});
+  window.addEventListener('mousemove',  e => { if (dragging) setPos(e.clientX); });
+  window.addEventListener('touchmove',  e => { if (dragging) setPos(e.touches[0].clientX); }, {passive:true});
+  window.addEventListener('mouseup',  () => dragging = false);
+  window.addEventListener('touchend', () => dragging = false);
+}
+
+initSlider();
+
+function setupBeforeAfter(generatedSrc) {
+  const pf = files.find(Boolean);
+  const tabs = document.getElementById('baTabs');
+  if (pf) {
+    // On a une photo originale — activer le slider
+    const reader = new FileReader();
+    reader.onload = e => {
+      originalSrc = e.target.result;
+      document.getElementById('baBefore-img').src = originalSrc;
+      document.getElementById('baAfter').src = generatedSrc;
+      // Reset position au centre
+      document.getElementById('baBefore').style.width = '50%';
+      document.getElementById('baDivider').style.left = '50%';
+      document.getElementById('baHandle').style.left  = '50%';
+      tabs.style.display = 'flex';
+      showTab('ba'); // montrer le slider en premier
+    };
+    reader.readAsDataURL(pf);
+  } else {
+    tabs.style.display = 'none';
+    document.getElementById('riw').style.display = 'block';
+    document.getElementById('baWrap').style.display = 'none';
+  }
+}
 
 // ── INIT ─────────────────────────────────────────────────────
 buildGrid(); showLeft('s1'); showRight('empty');
