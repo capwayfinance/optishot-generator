@@ -225,6 +225,13 @@ body::before{content:'';display:block;height:2px;background:linear-gradient(90de
 
 
 
+
+/* ══ SHARE BUTTON ════════════════════════════════ */
+.btn-share{display:inline-flex;align-items:center;gap:5px;background:transparent;color:var(--c50);border:1px solid var(--c15);border-radius:var(--rad-s);padding:7px 13px;font-family:var(--fb);font-size:12px;font-weight:400;cursor:pointer;transition:all .15s;white-space:nowrap;-webkit-appearance:none}
+.btn-share:hover{border-color:var(--or-dim);color:var(--or)}
+.btn-share svg{width:12px;height:12px}
+.btn-share.hidden{display:none}
+
 /* ══ FOOTER ══════════════════════════════════════ */
 .footer{border-top:1px solid var(--c08);padding:22px 40px;display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto}
 .footer span{font-size:11.5px;font-weight:300;color:var(--c30)}
@@ -415,6 +422,10 @@ body::before{content:'';display:block;height:2px;background:linear-gradient(90de
           <button class="btn-rg" id="rgBtn" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             Relancer
+          </button>
+          <button class="btn-share hidden" id="shareBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Partager
           </button>
           <button class="btn-dl" id="dlBtn" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -662,7 +673,49 @@ function toggleMode() {
 })();
 
 
+
+// ── PARTAGE NATIF (Web Share API) ────────────────────────────
+function b64toBlob(b64, mime) {
+  const bytes = atob(b64);
+  const arr = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+async function shareImage() {
+  if (!curB64) return;
+  const blob = b64toBlob(curB64, 'image/jpeg');
+  const file = new File([blob], 'optishot-visuel.jpg', { type: 'image/jpeg' });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: 'Visuel OptiShot',
+        text: 'Visuel généré par OptiShot pour Capway Finance',
+      });
+    } else {
+      // Fallback : téléchargement direct
+      const a = document.createElement('a');
+      a.href = 'data:image/jpeg;base64,' + curB64;
+      a.download = 'optishot-' + Date.now() + '.jpg';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+  } catch (err) {
+    if (err.name !== 'AbortError') console.error('Share error:', err);
+  }
+}
+
+// Afficher le bouton Partager uniquement si Web Share API dispo
+function initShareBtn() {
+  const btn = document.getElementById('shareBtn');
+  if (navigator.share) {
+    btn.classList.remove('hidden');
+    btn.addEventListener('click', shareImage);
+  }
+}
+
 // ── INIT ─────────────────────────────────────────────────────
+initShareBtn();
 buildGrid(); showLeft('s1'); showRight('empty');
 </script>
 </body>
