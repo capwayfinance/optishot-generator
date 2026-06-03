@@ -86,11 +86,10 @@ async function urlToBase64(url) {
   return Buffer.from(await r.arrayBuffer()).toString('base64');
 }
 
-// ── Gemini image generation : génère une image à partir d'un prompt ──
+// ── Gemini 2.5 Flash Image (Nano Banana) — 500 images/jour gratuit ──
 async function generateWithImagen(prompt, ratio, geminiKey) {
-  // Gemini 2.0 Flash image generation — disponible sur tier gratuit
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${geminiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${geminiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -107,7 +106,6 @@ async function generateWithImagen(prompt, ratio, geminiKey) {
   }
 
   const data = await res.json();
-  // L'image est dans inlineData.data (base64)
   const parts = data?.candidates?.[0]?.content?.parts || [];
   const imagePart = parts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
   if (!imagePart) throw new Error('Gemini image : aucune image retournée.');
