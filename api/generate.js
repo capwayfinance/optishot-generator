@@ -86,36 +86,32 @@ async function urlToBase64(url) {
   return Buffer.from(await r.arrayBuffer()).toString('base64');
 }
 
-// ── Imagen 4 : génère une image à partir d'un prompt ──────────
+// ── Gemini image generation : génère une image à partir d'un prompt ──
 async function generateWithImagen(prompt, ratio, geminiKey) {
-  // Aspect ratios supportés : "1:1", "3:4", "4:3", "9:16", "16:9"
-  const aspectRatio = ratio === '4:5' ? '3:4' : ratio;
-
+  // Gemini 2.0 Flash image generation — disponible sur tier gratuit
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${geminiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${geminiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        instances: [{ prompt }],
-        parameters: {
-          sampleCount:  1,
-          aspectRatio:  aspectRatio,
-          safetySetting: 'block_low_and_above',
-        },
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
       }),
     }
   );
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `Imagen 4 HTTP ${res.status}`);
+    throw new Error(err?.error?.message || `Gemini image HTTP ${res.status}`);
   }
 
   const data = await res.json();
-  const imageBytes = data?.predictions?.[0]?.bytesBase64Encoded;
-  if (!imageBytes) throw new Error('Imagen 4 : aucune image retournée.');
-  return imageBytes; // base64
+  // L'image est dans inlineData.data (base64)
+  const parts = data?.candidates?.[0]?.content?.parts || [];
+  const imagePart = parts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
+  if (!imagePart) throw new Error('Gemini image : aucune image retournée.');
+  return imagePart.inlineData.data; // base64
 }
 
 module.exports = async (req, res) => {
