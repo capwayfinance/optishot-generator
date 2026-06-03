@@ -101,7 +101,7 @@ async function generateWithImagen(prompt, ratio, geminiKey) {
         parameters: {
           sampleCount:  1,
           aspectRatio:  aspectRatio,
-          safetySetting: 'block_some',
+          safetySetting: 'block_low_and_above',
         },
       }),
     }
