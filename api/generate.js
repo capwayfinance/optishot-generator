@@ -86,8 +86,8 @@ async function urlToBase64(url) {
   return Buffer.from(await r.arrayBuffer()).toString('base64');
 }
 
-// ── Gemini 2.5 Flash Image (Nano Banana) — 500 images/jour gratuit ──
-async function generateWithImagen(prompt, ratio, geminiKey) {
+// ── Nano Banana (Gemini 2.5 Flash Image) ─────────────────────
+async function generateWithNanoBanana(prompt, geminiKey) {
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${geminiKey}`,
     {
@@ -102,13 +102,13 @@ async function generateWithImagen(prompt, ratio, geminiKey) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `Gemini image HTTP ${res.status}`);
+    throw new Error(err?.error?.message || `Nano Banana HTTP ${res.status}`);
   }
 
   const data = await res.json();
   const parts = data?.candidates?.[0]?.content?.parts || [];
   const imagePart = parts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
-  if (!imagePart) throw new Error('Gemini image : aucune image retournée.');
+  if (!imagePart) throw new Error('Nano Banana : aucune image retournée.');
   return imagePart.inlineData.data; // base64
 }
 
@@ -122,7 +122,8 @@ module.exports = async (req, res) => {
   const falKey    = process.env.FAL_KEY;
   const geminiKey = process.env.GEMINI_KEY;
 
-  if (!geminiKey) return res.status(500).json({ error: 'GEMINI_KEY manquante sur Vercel.' });
+  if (!geminiKey) return res.status(500).json({ error: 'GEMINI_KEY manquante.' });
+    if (!falKey) return res.status(500).json({ error: 'FAL_KEY manquante.' });
 
   try {
     const ct = req.headers['content-type'] || '';
@@ -159,7 +160,7 @@ module.exports = async (req, res) => {
         : `luxury eyeglasses, ${bgBase}, no people, no hands, photorealistic, 8k`;
 
       console.log('[generate] Imagen 4 txt2img');
-      const base64 = await generateWithImagen(fullPrompt, ratio, geminiKey);
+      const base64 = await generateWithNanoBanana(fullPrompt, geminiKey);
       return res.status(200).json({ image: base64 });
     }
 
@@ -193,7 +194,7 @@ module.exports = async (req, res) => {
       : `${bgBase}, no glasses, empty scene, product photography background, photorealistic, 8k`;
 
     console.log('[generate] Step 2: Imagen 4 background');
-    const bgBase64 = await generateWithImagen(bgPrompt, ratio, geminiKey);
+    const bgBase64 = await generateWithNanoBanana(bgPrompt, geminiKey);
     const bgDataUrl = `data:image/png;base64,${bgBase64}`;
 
     // Étape 3 : composite lunettes sur le fond Imagen 4
