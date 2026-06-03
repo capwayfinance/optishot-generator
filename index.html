@@ -232,6 +232,19 @@ body::before{content:'';display:block;height:2px;background:linear-gradient(90de
 .btn-share svg{width:12px;height:12px}
 .btn-share.hidden{display:none}
 
+
+/* ══ CAPTIONS INSTAGRAM ═════════════════════════ */
+.captions-wrap{padding:0 18px 16px;display:none;flex-direction:column;gap:8px}
+.captions-wrap.show{display:flex}
+.captions-head{font-size:10px;font-weight:600;color:var(--c30);letter-spacing:.12em;text-transform:uppercase;padding:14px 18px 0;display:none}
+.captions-head.show{display:block}
+.caption-card{background:var(--nuit-3);border:1px solid var(--c08);border-radius:var(--rad-s);padding:12px 14px;position:relative}
+.caption-tag{font-size:9px;font-weight:700;color:var(--or);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:5px}
+.caption-txt{font-size:12.5px;font-weight:300;color:var(--creme);line-height:1.65;padding-right:36px}
+.caption-copy{position:absolute;top:10px;right:10px;background:transparent;border:1px solid var(--c15);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:10px;font-weight:500;color:var(--c50);transition:all .15s;white-space:nowrap;font-family:var(--fb)}
+.caption-copy:hover{border-color:var(--or-dim);color:var(--or)}
+.caption-copy.copied{border-color:var(--or);color:var(--or);background:var(--or-10)}
+
 /* ══ FOOTER ══════════════════════════════════════ */
 .footer{border-top:1px solid var(--c08);padding:22px 40px;display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto}
 .footer span{font-size:11.5px;font-weight:300;color:var(--c30)}
@@ -433,6 +446,10 @@ body::before{content:'';display:block;height:2px;background:linear-gradient(90de
           </button>
         </div>
       </div>
+      <div id="captionsHead" class="captions-head">
+        📱 Légendes Instagram — prêtes à copier
+      </div>
+      <div class="captions-wrap" id="captionsWrap"></div>
       <div class="r-rfooter">
         <button class="btn-nw" id="nwBtn" type="button">+ Nouvelle monture</button>
       </div>
@@ -632,6 +649,7 @@ async function runGen() {
     riw.style.display='block';
     rFormat.textContent = 'Format '+selRatio+' · JPEG HD';
     showRight('result');
+    displayCaptions(data.captions || []);
   } catch(err) {
     document.getElementById('etxt').textContent=err.message;
     showLeft('ec'); showRight('empty');
@@ -712,6 +730,40 @@ function initShareBtn() {
     btn.classList.remove('hidden');
     btn.addEventListener('click', shareImage);
   }
+}
+
+
+// ── LÉGENDES INSTAGRAM ───────────────────────────────────────
+const CAPTION_TAGS = ['Élégant', 'Chaleureux', 'Tendance'];
+
+function displayCaptions(captions) {
+  const wrap = document.getElementById('captionsWrap');
+  const head = document.getElementById('captionsHead');
+  if (!captions || !captions.length) {
+    wrap.classList.remove('show');
+    head.classList.remove('show');
+    return;
+  }
+  wrap.innerHTML = '';
+  captions.forEach((txt, i) => {
+    const card = document.createElement('div');
+    card.className = 'caption-card';
+    card.innerHTML = `
+      <span class="caption-tag">${CAPTION_TAGS[i] || 'Option ' + (i+1)}</span>
+      <span class="caption-txt">${txt}</span>
+      <button class="caption-copy" type="button" data-txt="${txt.replace(/"/g, '&quot;')}">Copier</button>
+    `;
+    card.querySelector('.caption-copy').addEventListener('click', function() {
+      navigator.clipboard.writeText(this.dataset.txt).then(() => {
+        this.textContent = '✓ Copié';
+        this.classList.add('copied');
+        setTimeout(() => { this.textContent = 'Copier'; this.classList.remove('copied'); }, 2000);
+      });
+    });
+    wrap.appendChild(card);
+  });
+  wrap.classList.add('show');
+  head.classList.add('show');
 }
 
 // ── INIT ─────────────────────────────────────────────────────
