@@ -53,6 +53,49 @@ function parseMultipart(buffer, boundary) {
   return results;
 }
 
+
+// ── Génération de 3 légendes Instagram ───────────────────────
+async function generateCaptions(prompt, geminiKey) {
+  try {
+    const instruction = `Tu es expert en marketing pour opticiens indépendants en France.
+À partir de cette description de visuel : "${prompt.slice(0, 200)}"
+
+Génère 3 légendes Instagram différentes pour un opticien indépendant. Chaque légende doit :
+- Être en français naturel et authentique
+- Faire 2-3 phrases maximum
+- Inclure 3-5 hashtags pertinents à la fin
+- Avoir un ton différent : 1) élégant et premium, 2) chaleureux et proche, 3) dynamique et tendance
+- Parler de la monture et donner envie de venir en boutique
+
+Réponds UNIQUEMENT avec un JSON valide, sans markdown :
+{"captions": ["légende 1...", "légende 2...", "légende 3..."]}`;
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${geminiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: instruction }] }],
+          generationConfig: { temperature: 0.8, maxOutputTokens: 600 },
+        }),
+      }
+    );
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (!text) return null;
+    const jsonMatch = text.match(/{[\s\S]*}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]);
+    return parsed.captions?.slice(0, 3) || null;
+  } catch(e) {
+    console.warn('[captions] error:', e.message);
+    return null;
+  }
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -139,7 +182,13 @@ No hands, no people. Photorealistic, high-end commercial product photography, 8K
 
     if (!imagePart) throw new Error('Nano Banana : aucune image retournée.');
 
-    return res.status(200).json({ image: imagePart.inlineData.data });
+    // Générer les légendes Instagram en parallèle
+    const captions = await generateCaptions(promptRaw || finalPrompt, geminiKey);
+
+    return res.status(200).json({
+      image: imagePart.inlineData.data,
+      captions: captions || [],
+    });
 
   } catch (err) {
     console.error('[generate] error:', err.message);
