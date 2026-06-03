@@ -88,19 +88,24 @@ async function urlToBase64(url) {
 
 // ── Imagen 4 : génère une image à partir d'un prompt ──────────
 async function generateWithImagen(prompt, ratio, geminiKey) {
-  const aspectRatio = RATIO_MAP[ratio] || RATIO_MAP['1:1'];
+  // Aspect ratios supportés : "1:1", "3:4", "4:3", "9:16", "16:9"
+  const aspectRatio = ratio === '4:5' ? '3:4' : ratio;
 
-  const res = await fetch(`${IMAGEN_URL}?key=${geminiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt,
-      number_of_images: 1,
-      aspect_ratio:     aspectRatio,
-      safety_filter_level: 'BLOCK_SOME',
-      person_generation:   'DONT_ALLOW',
-    }),
-  });
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${geminiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        instances: [{ prompt }],
+        parameters: {
+          sampleCount:  1,
+          aspectRatio:  aspectRatio,
+          safetySetting: 'block_some',
+        },
+      }),
+    }
+  );
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -108,9 +113,9 @@ async function generateWithImagen(prompt, ratio, geminiKey) {
   }
 
   const data = await res.json();
-  const imageBytes = data?.generatedImages?.[0]?.image?.imageBytes;
+  const imageBytes = data?.predictions?.[0]?.bytesBase64Encoded;
   if (!imageBytes) throw new Error('Imagen 4 : aucune image retournée.');
-  return imageBytes; // déjà en base64
+  return imageBytes; // base64
 }
 
 module.exports = async (req, res) => {
