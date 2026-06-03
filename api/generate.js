@@ -1,25 +1,6 @@
-// generate.js v5 — Imagen 4 (Google) remplace Flux Dev
-// Pipeline avec image :  birefnet (fal.ai) → Imagen 4 génère le fond → composite (fal.ai)
-// Pipeline sans image :  Imagen 4 génère directement
-
-const FAL_BIREFNET  = 'https://fal.run/fal-ai/birefnet';
-const FAL_COMPOSITE = 'https://fal.run/fal-ai/imageutils/composite';
-const IMAGEN_URL    = 'https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:generateImages';
-
-// Aspect ratios supportés par Imagen 4
-const RATIO_MAP = {
-  '1:1':  'ASPECT_RATIO_1_1',
-  '4:5':  'ASPECT_RATIO_3_4',   // Imagen n'a pas 4:5 — 3:4 est le plus proche
-  '9:16': 'ASPECT_RATIO_9_16',
-  '16:9': 'ASPECT_RATIO_16_9',
-};
-
-const BG_PROMPTS = {
-  studio: 'professional white studio background, soft even lighting, subtle shadow beneath the glasses, clean minimal product photography',
-  nature: 'warm golden hour sunlight outdoors, natural stone surface, lush green botanical bokeh background, lifestyle luxury',
-  luxe:   'dark polished marble surface, dramatic directional side light, luxury editorial, deep contrast, high-end boutique',
-  urbain: 'matte concrete surface, cool moody directional urban light, minimalist city background, architectural',
-};
+// generate.js v6 — Nano Banana (Gemini 2.5 Flash Image) seul
+// Avec image : envoie la photo + le prompt → Nano Banana génère le visuel complet
+// Sans image : génère depuis le texte uniquement
 
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
@@ -72,46 +53,6 @@ function parseMultipart(buffer, boundary) {
   return results;
 }
 
-async function fetchFal(url, body, falKey) {
-  return fetch(url, {
-    method: 'POST',
-    headers: { Authorization: `Key ${falKey}`, 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify(body),
-  });
-}
-
-async function urlToBase64(url) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`Fetch image failed: ${r.status}`);
-  return Buffer.from(await r.arrayBuffer()).toString('base64');
-}
-
-// ── Nano Banana (Gemini 2.5 Flash Image) ─────────────────────
-async function generateWithNanoBanana(prompt, geminiKey) {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${geminiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
-      }),
-    }
-  );
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `Nano Banana HTTP ${res.status}`);
-  }
-
-  const data = await res.json();
-  const parts = data?.candidates?.[0]?.content?.parts || [];
-  const imagePart = parts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
-  if (!imagePart) throw new Error('Nano Banana : aucune image retournée.');
-  return imagePart.inlineData.data; // base64
-}
-
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -119,15 +60,12 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const falKey    = process.env.FAL_KEY;
   const geminiKey = process.env.GEMINI_KEY;
-
   if (!geminiKey) return res.status(500).json({ error: 'GEMINI_KEY manquante.' });
-    if (!falKey) return res.status(500).json({ error: 'FAL_KEY manquante.' });
 
   try {
     const ct = req.headers['content-type'] || '';
-    let promptRaw = '', style = 'studio', ratio = '1:1';
+    let promptRaw = '', ratio = '1:1';
     let imageBase64 = null, imageMime = 'image/jpeg';
 
     if (ct.includes('multipart/form-data')) {
@@ -136,7 +74,6 @@ module.exports = async (req, res) => {
       if (!boundary) return res.status(400).json({ error: 'Boundary manquant.' });
       const fields = parseMultipart(rawBody, boundary);
       promptRaw    = fields.prompt?.value || '';
-      style        = fields.style?.value  || 'studio';
       ratio        = fields.ratio?.value  || '1:1';
       if (fields.image) {
         imageBase64 = fields.image.data.toString('base64');
@@ -149,83 +86,60 @@ module.exports = async (req, res) => {
       ratio     = payload.ratio || '1:1';
     }
 
-    const bgBase = BG_PROMPTS[style] || BG_PROMPTS.studio;
+    // ── Construction du prompt final ─────────────────────────
+    let finalPrompt;
+    if (imageBase64) {
+      // Avec image : demander à Nano Banana de garder les lunettes et changer le décor
+      finalPrompt = `You are a luxury eyewear product photographer.
+I am giving you a photo of eyeglass frames.
+Your task: generate a NEW high-quality product photograph of THESE EXACT SAME glasses in the following setting:
 
-    // ══════════════════════════════════════════════════
-    // SANS IMAGE → Imagen 4 génère directement
-    // ══════════════════════════════════════════════════
-    if (!imageBase64) {
-      const fullPrompt = promptRaw
-        ? `${promptRaw}, ${bgBase}, luxury eyeglasses product photography, no people, no hands, photorealistic, 8k`
-        : `luxury eyeglasses, ${bgBase}, no people, no hands, photorealistic, 8k`;
+${promptRaw || 'professional white studio background, soft lighting, clean minimal product photography'}
 
-      console.log('[generate] Imagen 4 txt2img');
-      const base64 = await generateWithNanoBanana(fullPrompt, geminiKey);
-      return res.status(200).json({ image: base64 });
+Important rules:
+- Keep the EXACT SAME glasses frames — same shape, same color, same material
+- The glasses must be clearly visible and sharp in the foreground
+- Only change the background, lighting and setting
+- No hands, no people
+- Photorealistic, high-end commercial product photography quality
+- 8K resolution`;
+    } else {
+      // Sans image : génération pure
+      finalPrompt = `${promptRaw || 'luxury eyeglasses, professional white studio background, soft lighting, minimal product photography'}
+No hands, no people. Photorealistic, high-end commercial product photography, 8K.`;
     }
 
-    // ══════════════════════════════════════════════════
-    // AVEC IMAGE → Pipeline 3 étapes
-    // ══════════════════════════════════════════════════
-    const imageDataUrl = `data:${imageMime};base64,${imageBase64}`;
+    // ── Appel Nano Banana ─────────────────────────────────────
+    const parts = [];
+    if (imageBase64) {
+      parts.push({ inlineData: { mimeType: imageMime, data: imageBase64 } });
+    }
+    parts.push({ text: finalPrompt });
 
-    // Étape 1 : birefnet — découpe les lunettes proprement
-    let glassesUrl = null;
-    if (falKey) {
-      console.log('[generate] Step 1: birefnet');
-      try {
-        const brRes = await fetchFal(FAL_BIREFNET, {
-          image_url: imageDataUrl,
-          model: 'General Use (Light)',
-          output_format: 'png',
-        }, falKey);
-        if (brRes.ok) {
-          const brData = await brRes.json();
-          glassesUrl = brData?.image?.url || brData?.images?.[0]?.url;
-        }
-      } catch(e) {
-        console.warn('[generate] birefnet failed:', e.message);
+    const nbRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${geminiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts }],
+          generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
+        }),
       }
+    );
+
+    if (!nbRes.ok) {
+      const err = await nbRes.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `Nano Banana HTTP ${nbRes.status}`);
     }
 
-    // Étape 2 : Imagen 4 génère le fond
-    const bgPrompt = promptRaw
-      ? `${promptRaw}, ${bgBase}, no glasses, empty scene, product photography background, photorealistic, 8k`
-      : `${bgBase}, no glasses, empty scene, product photography background, photorealistic, 8k`;
+    const data = await nbRes.json();
+    const responseParts = data?.candidates?.[0]?.content?.parts || [];
+    const imagePart = responseParts.find(p => p.inlineData?.mimeType?.startsWith('image/'));
 
-    console.log('[generate] Step 2: Imagen 4 background');
-    const bgBase64 = await generateWithNanoBanana(bgPrompt, geminiKey);
-    const bgDataUrl = `data:image/png;base64,${bgBase64}`;
+    if (!imagePart) throw new Error('Nano Banana : aucune image retournée.');
 
-    // Étape 3 : composite lunettes sur le fond Imagen 4
-    if (glassesUrl && falKey) {
-      console.log('[generate] Step 3: composite');
-      try {
-        const compRes = await fetchFal(FAL_COMPOSITE, {
-          background_image_url: bgDataUrl,
-          foreground_image_url: glassesUrl,
-          position: 'center',
-          scale: 0.7,
-          sync_mode: true,
-        }, falKey);
-
-        if (compRes.ok) {
-          const compData = await compRes.json();
-          const finalUrl = compData?.image?.url || compData?.images?.[0]?.url;
-          if (finalUrl) {
-            console.log('[generate] composite OK');
-            const base64 = await urlToBase64(finalUrl);
-            return res.status(200).json({ image: base64 });
-          }
-        }
-      } catch(e) {
-        console.warn('[generate] composite failed:', e.message);
-      }
-    }
-
-    // Fallback : retourner le fond Imagen 4 directement
-    console.log('[generate] fallback: Imagen 4 bg only');
-    return res.status(200).json({ image: bgBase64 });
+    return res.status(200).json({ image: imagePart.inlineData.data });
 
   } catch (err) {
     console.error('[generate] error:', err.message);
