@@ -1,25 +1,24 @@
-// generate.js v4 — Pipeline 2 étapes
-// Étape 1 : birefnet (suppression fond propre, préserve les verres)
-// Étape 2 : Flux Dev (génération du fond)
-// Étape 3 : Composite (lunettes par-dessus le fond généré)
+// generate.js v5 — Imagen 4 (Google) remplace Flux Dev
+// Pipeline avec image :  birefnet (fal.ai) → Imagen 4 génère le fond → composite (fal.ai)
+// Pipeline sans image :  Imagen 4 génère directement
 
 const FAL_BIREFNET  = 'https://fal.run/fal-ai/birefnet';
-const FAL_FLUX      = 'https://fal.run/fal-ai/flux/dev';
 const FAL_COMPOSITE = 'https://fal.run/fal-ai/imageutils/composite';
-const FAL_BRIA      = 'https://fal.run/fal-ai/bria/background/replace';
+const IMAGEN_URL    = 'https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:generateImages';
 
-const SIZE_MAP = {
-  '1:1':  { width: 1024, height: 1024 },
-  '4:5':  { width: 816,  height: 1024 },
-  '16:9': { width: 1024, height: 576  },
-  '9:16': { width: 576,  height: 1024 },
+// Aspect ratios supportés par Imagen 4
+const RATIO_MAP = {
+  '1:1':  'ASPECT_RATIO_1_1',
+  '4:5':  'ASPECT_RATIO_3_4',   // Imagen n'a pas 4:5 — 3:4 est le plus proche
+  '9:16': 'ASPECT_RATIO_9_16',
+  '16:9': 'ASPECT_RATIO_16_9',
 };
 
 const BG_PROMPTS = {
-  studio: 'clean white studio background, even soft-box lighting, minimal product photography, no objects',
-  nature: 'warm golden hour sunlight, lush green bokeh background, natural stone surface, outdoor lifestyle',
-  luxe:   'dark polished marble surface, dramatic directional side light, luxury editorial, deep contrast',
-  urbain: 'matte concrete surface, cool directional urban light, architectural city background',
+  studio: 'professional white studio background, soft even lighting, subtle shadow beneath the glasses, clean minimal product photography',
+  nature: 'warm golden hour sunlight outdoors, natural stone surface, lush green botanical bokeh background, lifestyle luxury',
+  luxe:   'dark polished marble surface, dramatic directional side light, luxury editorial, deep contrast, high-end boutique',
+  urbain: 'matte concrete surface, cool moody directional urban light, minimalist city background, architectural',
 };
 
 function getRawBody(req) {
@@ -35,7 +34,7 @@ function indexOf(buf, search, offset = 0) {
   for (let i = offset; i <= buf.length - search.length; i++) {
     let ok = true;
     for (let j = 0; j < search.length; j++) {
-      if (buf[i+j] !== search[j]) { ok=false; break; }
+      if (buf[i+j] !== search[j]) { ok = false; break; }
     }
     if (ok) return i;
   }
@@ -50,7 +49,7 @@ function parseMultipart(buffer, boundary) {
   while ((pos = indexOf(buffer, sep, start)) !== -1) {
     parts.push(buffer.slice(start, pos));
     start = pos + sep.length;
-    if (buffer[start]===13 && buffer[start+1]===10) start += 2;
+    if (buffer[start] === 13 && buffer[start+1] === 10) start += 2;
   }
   parts.push(buffer.slice(start));
   for (const part of parts.filter(p => p.length > 4)) {
@@ -58,7 +57,7 @@ function parseMultipart(buffer, boundary) {
     if (idx === -1) continue;
     const headers = part.slice(0, idx).toString('utf8');
     let body = part.slice(idx + 4);
-    if (body.slice(-2).equals(Buffer.from('\r\n'))) body = body.slice(0,-2);
+    if (body.slice(-2).equals(Buffer.from('\r\n'))) body = body.slice(0, -2);
     const nameMatch = headers.match(/name="([^"]+)"/i);
     if (!nameMatch) continue;
     const name = nameMatch[1];
@@ -73,14 +72,10 @@ function parseMultipart(buffer, boundary) {
   return results;
 }
 
-async function fetchWithKey(url, body, falKey) {
+async function fetchFal(url, body, falKey) {
   return fetch(url, {
     method: 'POST',
-    headers: {
-      Authorization: `Key ${falKey}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
+    headers: { Authorization: `Key ${falKey}`, 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify(body),
   });
 }
@@ -88,8 +83,34 @@ async function fetchWithKey(url, body, falKey) {
 async function urlToBase64(url) {
   const r = await fetch(url);
   if (!r.ok) throw new Error(`Fetch image failed: ${r.status}`);
-  const ab = await r.arrayBuffer();
-  return Buffer.from(ab).toString('base64');
+  return Buffer.from(await r.arrayBuffer()).toString('base64');
+}
+
+// ── Imagen 4 : génère une image à partir d'un prompt ──────────
+async function generateWithImagen(prompt, ratio, geminiKey) {
+  const aspectRatio = RATIO_MAP[ratio] || RATIO_MAP['1:1'];
+
+  const res = await fetch(`${IMAGEN_URL}?key=${geminiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt,
+      number_of_images: 1,
+      aspect_ratio:     aspectRatio,
+      safety_filter_level: 'BLOCK_SOME',
+      person_generation:   'DONT_ALLOW',
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `Imagen 4 HTTP ${res.status}`);
+  }
+
+  const data = await res.json();
+  const imageBytes = data?.generatedImages?.[0]?.image?.imageBytes;
+  if (!imageBytes) throw new Error('Imagen 4 : aucune image retournée.');
+  return imageBytes; // déjà en base64
 }
 
 module.exports = async (req, res) => {
@@ -99,8 +120,10 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const falKey = process.env.FAL_KEY;
-  if (!falKey) return res.status(500).json({ error: 'FAL_KEY manquante.' });
+  const falKey    = process.env.FAL_KEY;
+  const geminiKey = process.env.GEMINI_KEY;
+
+  if (!geminiKey) return res.status(500).json({ error: 'GEMINI_KEY manquante sur Vercel.' });
 
   try {
     const ct = req.headers['content-type'] || '';
@@ -126,153 +149,83 @@ module.exports = async (req, res) => {
       ratio     = payload.ratio || '1:1';
     }
 
-    const size = SIZE_MAP[ratio] || SIZE_MAP['1:1'];
+    const bgBase = BG_PROMPTS[style] || BG_PROMPTS.studio;
 
-    // ══════════════════════════════════════════════════════
-    // SANS IMAGE → txt2img Flux Dev simple
-    // ══════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════
+    // SANS IMAGE → Imagen 4 génère directement
+    // ══════════════════════════════════════════════════
     if (!imageBase64) {
-      const fullPrompt = [
-        promptRaw.trim() || `luxury eyeglasses, ${BG_PROMPTS[style] || BG_PROMPTS.studio}`,
-        'tack sharp focus on frames',
-        'no people, no hands, no text, no watermark',
-        'professional product photography, photorealistic',
-      ].join(', ');
+      const fullPrompt = promptRaw
+        ? `${promptRaw}, ${bgBase}, luxury eyeglasses product photography, no people, no hands, photorealistic, 8k`
+        : `luxury eyeglasses, ${bgBase}, no people, no hands, photorealistic, 8k`;
 
-      const r = await fetchWithKey(FAL_FLUX, {
-        prompt: fullPrompt,
-        image_size: size,
-        num_images: 1,
-        num_inference_steps: 50,
-        guidance_scale: 7.5,
-        output_format: 'jpeg',
-        enable_safety_checker: false,
-        seed: Math.floor(Math.random() * 9999999),
-      }, falKey);
-
-      if (!r.ok) {
-        const e = await r.json().catch(() => ({}));
-        throw new Error(e?.detail || `Flux HTTP ${r.status}`);
-      }
-      const d = await r.json();
-      const imgUrl = d?.images?.[0]?.url;
-      if (!imgUrl) throw new Error('Flux: aucune image retournée.');
-      const base64 = await urlToBase64(imgUrl);
+      console.log('[generate] Imagen 4 txt2img');
+      const base64 = await generateWithImagen(fullPrompt, ratio, geminiKey);
       return res.status(200).json({ image: base64 });
     }
 
-    // ══════════════════════════════════════════════════════
-    // AVEC IMAGE → Pipeline 2 étapes
-    // ══════════════════════════════════════════════════════
-
+    // ══════════════════════════════════════════════════
+    // AVEC IMAGE → Pipeline 3 étapes
+    // ══════════════════════════════════════════════════
     const imageDataUrl = `data:${imageMime};base64,${imageBase64}`;
 
-    // ── ÉTAPE 1 : birefnet — suppression fond propre ──────
-    console.log('[generate] Step 1: birefnet background removal');
-    const birefnetRes = await fetchWithKey(FAL_BIREFNET, {
-      image_url: imageDataUrl,
-      model: 'General Use (Light)',
-      output_format: 'png',
-      operating_on_video: false,
-    }, falKey);
-
+    // Étape 1 : birefnet — découpe les lunettes proprement
     let glassesUrl = null;
-
-    if (birefnetRes.ok) {
-      const birefnetData = await birefnetRes.json();
-      glassesUrl = birefnetData?.image?.url || birefnetData?.images?.[0]?.url;
-      console.log('[generate] birefnet OK, glasses URL:', glassesUrl ? 'got it' : 'missing');
-    } else {
-      const errData = await birefnetRes.json().catch(() => ({}));
-      console.warn('[generate] birefnet failed:', errData?.detail || birefnetRes.status, '— falling back to bria');
-    }
-
-    // ── ÉTAPE 2 : Flux Dev — génère le fond ──────────────
-    const bgBase = BG_PROMPTS[style] || BG_PROMPTS.studio;
-    const bgPrompt = promptRaw
-      ? `${promptRaw}, ${bgBase}, no glasses, no eyewear, empty scene, photorealistic, 8k`
-      : `${bgBase}, no glasses, no eyewear, empty scene, photorealistic, 8k`;
-
-    console.log('[generate] Step 2: Flux background generation');
-    const fluxRes = await fetchWithKey(FAL_FLUX, {
-      prompt: bgPrompt,
-      image_size: size,
-      num_images: 1,
-      num_inference_steps: 50,
-      guidance_scale: 7.5,
-      output_format: 'jpeg',
-      enable_safety_checker: false,
-      seed: Math.floor(Math.random() * 9999999),
-    }, falKey);
-
-    if (!fluxRes.ok) {
-      const e = await fluxRes.json().catch(() => ({}));
-      throw new Error(e?.detail || `Flux HTTP ${fluxRes.status}`);
-    }
-
-    const fluxData = await fluxRes.json();
-    const bgUrl = fluxData?.images?.[0]?.url;
-    if (!bgUrl) throw new Error('Flux: aucun fond retourné.');
-
-    console.log('[generate] Flux bg OK');
-
-    // ── ÉTAPE 3 : Composite ou fallback bria ─────────────
-    if (glassesUrl) {
-      // Composite : lunettes PNG sur le fond Flux
-      console.log('[generate] Step 3: compositing glasses over background');
-      const compRes = await fetchWithKey(FAL_COMPOSITE, {
-        background_image_url: bgUrl,
-        foreground_image_url: glassesUrl,
-        position: 'center',
-        scale: 0.7,
-        sync_mode: true,
-      }, falKey);
-
-      if (compRes.ok) {
-        const compData = await compRes.json();
-        const finalUrl = compData?.image?.url || compData?.images?.[0]?.url;
-        if (finalUrl) {
-          console.log('[generate] composite OK');
-          const base64 = await urlToBase64(finalUrl);
-          return res.status(200).json({ image: base64 });
+    if (falKey) {
+      console.log('[generate] Step 1: birefnet');
+      try {
+        const brRes = await fetchFal(FAL_BIREFNET, {
+          image_url: imageDataUrl,
+          model: 'General Use (Light)',
+          output_format: 'png',
+        }, falKey);
+        if (brRes.ok) {
+          const brData = await brRes.json();
+          glassesUrl = brData?.image?.url || brData?.images?.[0]?.url;
         }
+      } catch(e) {
+        console.warn('[generate] birefnet failed:', e.message);
       }
-      console.warn('[generate] composite failed, falling back to direct Flux result');
     }
 
-    // Fallback : si le composite échoue, retourner le fond Flux seul
-    // (meilleur que bria qui modifie les verres)
-    // OU fallback bria avec prompts renforcés pour préserver les verres
-    console.log('[generate] Fallback: bria with lens-preservation prompt');
+    // Étape 2 : Imagen 4 génère le fond
+    const bgPrompt = promptRaw
+      ? `${promptRaw}, ${bgBase}, no glasses, empty scene, product photography background, photorealistic, 8k`
+      : `${bgBase}, no glasses, empty scene, product photography background, photorealistic, 8k`;
 
-    const briaPrompt = [
-      promptRaw || bgBase,
-      'preserve the exact eyeglass frames',
-      'keep original lens transparency and color',
-      'keep clear transparent lenses exactly as they are',
-      'only change the background behind the glasses',
-      'do not modify the glasses frames or lenses',
-    ].join(', ');
+    console.log('[generate] Step 2: Imagen 4 background');
+    const bgBase64 = await generateWithImagen(bgPrompt, ratio, geminiKey);
+    const bgDataUrl = `data:image/png;base64,${bgBase64}`;
 
-    const briaRes = await fetchWithKey(FAL_BRIA, {
-      image_url:        imageDataUrl,
-      prompt:           briaPrompt,
-      negative_prompt:  'black lenses, dark lenses, sunglasses, tinted lenses, mirrored lenses, colored lenses, hands, fingers, person, human, skin, blurry, low quality, distorted, watermark',
-      num_images:       1,
-      sync_mode:        true,
-    }, falKey);
+    // Étape 3 : composite lunettes sur le fond Imagen 4
+    if (glassesUrl && falKey) {
+      console.log('[generate] Step 3: composite');
+      try {
+        const compRes = await fetchFal(FAL_COMPOSITE, {
+          background_image_url: bgDataUrl,
+          foreground_image_url: glassesUrl,
+          position: 'center',
+          scale: 0.7,
+          sync_mode: true,
+        }, falKey);
 
-    if (!briaRes.ok) {
-      const e = await briaRes.json().catch(() => ({}));
-      throw new Error(e?.detail || `Bria HTTP ${briaRes.status}`);
+        if (compRes.ok) {
+          const compData = await compRes.json();
+          const finalUrl = compData?.image?.url || compData?.images?.[0]?.url;
+          if (finalUrl) {
+            console.log('[generate] composite OK');
+            const base64 = await urlToBase64(finalUrl);
+            return res.status(200).json({ image: base64 });
+          }
+        }
+      } catch(e) {
+        console.warn('[generate] composite failed:', e.message);
+      }
     }
 
-    const briaData = await briaRes.json();
-    const briaUrl  = briaData?.images?.[0]?.url || briaData?.image?.url;
-    if (!briaUrl) throw new Error('Bria: aucune image retournée.');
-
-    const base64 = await urlToBase64(briaUrl);
-    return res.status(200).json({ image: base64 });
+    // Fallback : retourner le fond Imagen 4 directement
+    console.log('[generate] fallback: Imagen 4 bg only');
+    return res.status(200).json({ image: bgBase64 });
 
   } catch (err) {
     console.error('[generate] error:', err.message);
