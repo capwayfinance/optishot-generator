@@ -465,6 +465,11 @@ body::before{content:'';display:block;height:2px;background:linear-gradient(90de
 </footer>
 
 <script>
+// ── BASE API ─────────────────────────────────────────────────
+// Permet de servir l'outil aussi bien à la racine (optishot-generator.vercel.app)
+// que sous un sous-dossier proxifié (ex. capway.fr/optishot).
+const API_BASE = location.pathname.startsWith('/optishot') ? '/optishot' : '';
+
 // ── EMAIL GATE ───────────────────────────────────────────────
 const OPTISHOT_EMAIL_KEY = 'optishot_email';
 const getEmail = () => (localStorage.getItem(OPTISHOT_EMAIL_KEY) || '').trim();
@@ -611,7 +616,7 @@ aBtn.addEventListener('click', async () => {
       const c = await compress(f, 1200, 0.82);
       fd.append('images[]', c, 'p.jpg');
     }
-    const res  = await fetch('/api/analyze', {method:'POST', headers: emailHeaders(), body:fd});
+    const res  = await fetch(`${API_BASE}/api/analyze`, {method:'POST', headers: emailHeaders(), body:fd});
     const data = await res.json();
     if (!res.ok) {
       if (data.error === 'EMAIL_REQUIRED') localStorage.removeItem(OPTISHOT_EMAIL_KEY);
@@ -687,9 +692,9 @@ async function runGen() {
       fd.append('style', 'studio');
       fd.append('ratio', selRatio);
       fd.append('image', c, 'p.jpg');
-      res = await fetch('/api/generate', {method:'POST', headers: emailHeaders(), body:fd});
+      res = await fetch(`${API_BASE}/api/generate`, {method:'POST', headers: emailHeaders(), body:fd});
     } else {
-      res = await fetch('/api/generate', {method:'POST', headers: emailHeaders({'Content-Type':'application/json'}), body:JSON.stringify({prompt:finalPrompt, ratio:selRatio})});
+      res = await fetch(`${API_BASE}/api/generate`, {method:'POST', headers: emailHeaders({'Content-Type':'application/json'}), body:JSON.stringify({prompt:finalPrompt, ratio:selRatio})});
     }
     const data = await res.json();
     if (!res.ok) {
