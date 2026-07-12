@@ -119,12 +119,16 @@ function pickRandom(arr, count) {
   return shuffled.slice(0, count);
 }
 
+const { guard, applyCors } = require('../guard.js');
+
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  applyCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // Garde-fou : email obligatoire + rate-limit par IP (pas de quota sur l'analyse).
+  const gate = await guard(req, res, 'analyze');
+  if (!gate.ok) return;
 
   try {
     const rawBody  = await getRawBody(req);

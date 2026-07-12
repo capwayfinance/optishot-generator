@@ -96,12 +96,16 @@ Réponds UNIQUEMENT avec un JSON valide, sans markdown :
   }
 }
 
+const { guard, recordGeneration, applyCors } = require('../guard.js');
+
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  applyCors(req, res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // Garde-fou : email obligatoire + rate-limit par IP + quota (3 visuels/email).
+  const gate = await guard(req, res, 'generate');
+  if (!gate.ok) return;
 
   const geminiKey = process.env.GEMINI_KEY;
   if (!geminiKey) return res.status(500).json({ error: 'GEMINI_KEY manquante.' });
@@ -184,6 +188,9 @@ No hands, no people. Photorealistic, high-end commercial product photography, 8K
 
     // Générer les légendes Instagram en parallèle
     const captions = await generateCaptions(promptRaw || finalPrompt, geminiKey);
+
+    // Génération réussie → on décompte le quota de l'email + enregistre le lead.
+    await recordGeneration(gate.email);
 
     return res.status(200).json({
       image: imagePart.inlineData.data,

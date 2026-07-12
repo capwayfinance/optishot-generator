@@ -465,6 +465,51 @@ body::before{content:'';display:block;height:2px;background:linear-gradient(90de
 </footer>
 
 <script>
+// ── EMAIL GATE ───────────────────────────────────────────────
+const OPTISHOT_EMAIL_KEY = 'optishot_email';
+const getEmail = () => (localStorage.getItem(OPTISHOT_EMAIL_KEY) || '').trim();
+const isEmail  = e => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
+const emailHeaders = extra => Object.assign({ 'x-optishot-email': getEmail() }, extra || {});
+
+function ensureEmail() {
+  return new Promise(resolve => {
+    const cur = getEmail();
+    if (isEmail(cur)) return resolve(cur);
+    showEmailModal(resolve);
+  });
+}
+
+function showEmailModal(onDone) {
+  if (document.getElementById('emGate')) return;
+  const ov = document.createElement('div');
+  ov.id = 'emGate';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(5,10,8,.72);backdrop-filter:blur(4px);padding:20px;';
+  ov.innerHTML = `
+    <div style="max-width:420px;width:100%;background:var(--nuit);border:1px solid var(--or-dim);border-radius:var(--rad);padding:30px 28px;box-shadow:0 20px 60px rgba(0,0,0,.5);font-family:var(--fb);color:var(--creme);">
+      <div style="font-family:var(--ft);font-size:24px;margin-bottom:8px;">Votre email pour commencer</div>
+      <p style="font-size:14px;opacity:.75;margin:0 0 20px;line-height:1.5;">Indiquez votre email pour générer vos <strong>3 visuels gratuits</strong>. Sans engagement.</p>
+      <input id="emInput" type="email" inputmode="email" autocomplete="email" placeholder="vous@votre-optique.fr"
+        style="width:100%;box-sizing:border-box;padding:13px 15px;border-radius:var(--rad-s);border:1px solid var(--or-dim);background:var(--noir);color:var(--creme);font-size:15px;font-family:var(--fb);outline:none;margin-bottom:6px;">
+      <div id="emErr" style="color:var(--rouge);font-size:12.5px;min-height:16px;margin-bottom:12px;"></div>
+      <button id="emGo" type="button"
+        style="width:100%;padding:14px;border:none;border-radius:var(--rad-s);background:var(--accent);color:var(--btn-txt);font-size:15px;font-weight:600;font-family:var(--fb);cursor:pointer;">Commencer →</button>
+      <p style="font-size:11px;opacity:.5;margin:14px 0 0;text-align:center;">OptiShot · un outil Capway Finance pour les opticiens</p>
+    </div>`;
+  document.body.appendChild(ov);
+  const input = ov.querySelector('#emInput');
+  const err = ov.querySelector('#emErr');
+  const submit = () => {
+    const v = input.value.trim().toLowerCase();
+    if (!isEmail(v)) { err.textContent = 'Merci d’entrer un email valide.'; input.focus(); return; }
+    localStorage.setItem(OPTISHOT_EMAIL_KEY, v);
+    ov.remove();
+    onDone(v);
+  };
+  ov.querySelector('#emGo').addEventListener('click', submit);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+  input.focus();
+}
+
 // ── COMPRESSION ──────────────────────────────────────────────
 function compress(file, maxPx, q) {
   return new Promise(resolve => {
@@ -557,6 +602,7 @@ const wbox=document.getElementById('wbox'), wtxt=document.getElementById('wtxt')
 const freePrompt=document.getElementById('freePrompt');
 
 aBtn.addEventListener('click', async () => {
+  await ensureEmail();
   aBtn.disabled=true; aBtnTxt.textContent='Analyse IA…'; aSpin.style.display='block';
   showRight('loading');
   try {
@@ -565,9 +611,12 @@ aBtn.addEventListener('click', async () => {
       const c = await compress(f, 1200, 0.82);
       fd.append('images[]', c, 'p.jpg');
     }
-    const res  = await fetch('/api/analyze', {method:'POST', body:fd});
+    const res  = await fetch('/api/analyze', {method:'POST', headers: emailHeaders(), body:fd});
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error||`HTTP ${res.status}`);
+    if (!res.ok) {
+      if (data.error === 'EMAIL_REQUIRED') localStorage.removeItem(OPTISHOT_EMAIL_KEY);
+      throw new Error(data.message || data.error || `HTTP ${res.status}`);
+    }
     if (data.frame_description) { fdesc.textContent='🔍 '+data.frame_description; fdesc.style.display='block'; }
     else fdesc.style.display='none';
     if (data.warning) { wbox.style.display='flex'; wtxt.textContent=data.warning; }
@@ -622,6 +671,7 @@ const rFormat=document.getElementById('rFormat');
 async function runGen() {
   const finalPrompt = freePrompt.value.trim() || selPrompt;
   if (!finalPrompt) { freePrompt.focus(); return; }
+  await ensureEmail();
   gBtn.disabled=true; gBtnTxt.textContent='En cours…'; gSpin.style.display='block';
   const pf = files.find(Boolean);
   if (pf) { lt.textContent='Suppression du fond…'; ls.textContent='Vos lunettes sont conservées · 20-35s'; }
@@ -637,12 +687,15 @@ async function runGen() {
       fd.append('style', 'studio');
       fd.append('ratio', selRatio);
       fd.append('image', c, 'p.jpg');
-      res = await fetch('/api/generate', {method:'POST', body:fd});
+      res = await fetch('/api/generate', {method:'POST', headers: emailHeaders(), body:fd});
     } else {
-      res = await fetch('/api/generate', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:finalPrompt, ratio:selRatio})});
+      res = await fetch('/api/generate', {method:'POST', headers: emailHeaders({'Content-Type':'application/json'}), body:JSON.stringify({prompt:finalPrompt, ratio:selRatio})});
     }
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error||`HTTP ${res.status}`);
+    if (!res.ok) {
+      if (data.error === 'EMAIL_REQUIRED') localStorage.removeItem(OPTISHOT_EMAIL_KEY);
+      throw new Error(data.message || data.error || `HTTP ${res.status}`);
+    }
     if (!data.image) throw new Error('Aucune image reçue.');
     curB64 = data.image;
     rimg.src = 'data:image/jpeg;base64,'+data.image;
